@@ -1,29 +1,33 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
 
 export function HeroMockup() {
   const prefersReduced = useReducedMotion();
   const easing = [0.21, 0.47, 0.32, 0.98] as const;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollY } = useScroll();
+  // Parallax : éléments bougent à différentes vitesses au scroll
+  const phoneY = useTransform(scrollY, [0, 800], [0, -60]);
+  const qrY = useTransform(scrollY, [0, 800], [0, -120]);
+  const qrRotate = useTransform(scrollY, [0, 800], [-12, -22]);
+  const notifY = useTransform(scrollY, [0, 800], [0, -90]);
+  const notifX = useTransform(scrollY, [0, 800], [0, 30]);
 
   return (
-    <div className="relative mx-auto w-full max-w-[340px]">
-      {/* QR code décoratif derrière (CSS float-rotate) */}
+    <div ref={containerRef} className="relative mx-auto w-full max-w-[340px]">
+      {/* QR code décoratif derrière (parallax + rotation au scroll) */}
       <motion.div
         aria-hidden="true"
-        initial={{ opacity: 0, x: -40, rotate: -30 }}
-        animate={{ opacity: 1, x: 0, rotate: -12 }}
+        initial={{ opacity: 0, x: -40, scale: 0.8 }}
+        animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ duration: 0.8, delay: 0.3, ease: easing }}
+        style={prefersReduced ? undefined : { y: qrY, rotate: qrRotate }}
         className="absolute -top-8 -left-8 hidden size-32 rounded-2xl bg-[var(--brand-forest)] p-3 shadow-xl md:block"
       >
-        <div
-          className={
-            prefersReduced
-              ? "grid h-full grid-cols-5 grid-rows-5 gap-1"
-              : "animate-float-rotate grid h-full grid-cols-5 grid-rows-5 gap-1"
-          }
-          style={prefersReduced ? undefined : { animation: "float-slow 6s ease-in-out infinite" }}
-        >
+        <div className="grid h-full grid-cols-5 grid-rows-5 gap-1">
           {Array.from({ length: 25 }, (_, i) => {
             const corners = [0, 4, 20];
             const isCorner = corners.includes(i);
@@ -48,22 +52,22 @@ export function HeroMockup() {
         </div>
       </motion.div>
 
-      {/* Phone mockup avec float */}
+      {/* Phone mockup avec parallax + float */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2, ease: easing }}
+        style={prefersReduced ? undefined : { y: phoneY }}
         className="relative"
       >
         <div
           className={
             prefersReduced
-              ? "relative aspect-[9/19] rounded-[42px] border-[10px] border-foreground bg-foreground shadow-2xl"
-              : "animate-float-slow relative aspect-[9/19] rounded-[42px] border-[10px] border-foreground bg-foreground shadow-2xl"
+              ? "border-foreground bg-foreground relative aspect-[9/19] rounded-[42px] border-[10px] shadow-2xl"
+              : "animate-float-slow border-foreground bg-foreground relative aspect-[9/19] rounded-[42px] border-[10px] shadow-2xl"
           }
         >
           <div className="bg-background relative h-full w-full overflow-hidden rounded-[32px]">
-            {/* Notch */}
             <div className="bg-foreground absolute top-2 left-1/2 z-10 h-5 w-24 -translate-x-1/2 rounded-full" />
 
             <div className="flex items-center gap-2 border-b px-4 pt-10 pb-3">
@@ -124,17 +128,24 @@ export function HeroMockup() {
         </div>
       </motion.div>
 
-      {/* Notification flottante "Commande envoyée" */}
+      {/* Notification flottante (parallax inverse) */}
       <motion.div
         aria-hidden="true"
         initial={{ opacity: 0, x: 30, scale: 0.9 }}
         animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ duration: 0.5, delay: 1.6, ease: easing }}
+        style={prefersReduced ? undefined : { y: notifY, x: notifX }}
         className="bg-card absolute top-32 -right-4 hidden rounded-xl border p-3 shadow-lg md:block"
       >
         <div className="flex items-center gap-2 text-xs">
           <div className="bg-[var(--brand-forest)] flex size-7 items-center justify-center rounded-full text-white">
-            ✓
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 1.9, type: "spring", stiffness: 300 }}
+            >
+              ✓
+            </motion.span>
           </div>
           <div>
             <p className="font-semibold">Commande envoyée</p>

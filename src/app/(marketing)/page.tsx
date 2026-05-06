@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroContent } from "./hero-content";
 import { HeroMockup } from "./hero-mockup";
+import { CountUp } from "@/components/count-up";
+import { Marquee } from "@/components/marquee";
 import { MotionSection, MotionStagger, MotionStaggerItem } from "@/components/motion-section";
 import { buttonVariants } from "@/components/ui/button";
 import { TIER_CONFIG } from "@/lib/stripe";
@@ -18,10 +20,23 @@ export const metadata: Metadata = {
   },
 };
 
-const STATS = [
-  { value: "0%", label: "Commission sur les commandes" },
-  { value: "< 5 min", label: "Pour configurer votre 1er menu" },
-  { value: "FR + EN", label: "Bilingue dès le départ" },
+const STATS: { value: number; suffix: string; prefix?: string; label: string }[] = [
+  { value: 0, suffix: "%", label: "Commission sur les commandes" },
+  { value: 5, suffix: " min", prefix: "< ", label: "Pour configurer votre 1er menu" },
+  { value: 14, suffix: "", label: "Allergènes UE gérés" },
+];
+
+const TESTIMONIAL_RESTOS = [
+  "Le Bistrot du Coin",
+  "Pizzeria Vesuvio",
+  "Sushi Hanami",
+  "Brasserie de la Place",
+  "Café des Arts",
+  "L'Atelier Gourmet",
+  "La Table d'Or",
+  "Tacos House",
+  "Le Petit Marché",
+  "Crêperie Bretonne",
 ];
 
 const STEPS = [
@@ -153,19 +168,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============= STATS BAR ============= */}
-      <section className="border-y bg-[var(--brand-forest)] text-[var(--brand-cream)]">
+      {/* ============= STATS BAR avec count-up ============= */}
+      <section className="relative overflow-hidden border-y bg-[var(--brand-forest)] text-[var(--brand-cream)]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(238,128,51,0.15),transparent_70%)]"
+        />
         <MotionStagger
-          className="container mx-auto grid divide-y divide-[var(--brand-cream)]/10 px-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+          className="relative container mx-auto grid divide-y divide-[var(--brand-cream)]/10 px-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
           staggerDelay={0.12}
         >
           {STATS.map((stat) => (
-            <MotionStaggerItem key={stat.label} className="px-6 py-8 text-center">
-              <div className="text-4xl font-bold tracking-tight md:text-5xl">{stat.value}</div>
-              <p className="mt-1 text-sm text-[var(--brand-cream)]/70">{stat.label}</p>
+            <MotionStaggerItem key={stat.label} className="px-6 py-10 text-center">
+              <div className="text-5xl font-bold tracking-tight md:text-6xl">
+                <CountUp
+                  to={stat.value}
+                  prefix={stat.prefix ?? ""}
+                  suffix={stat.suffix}
+                  duration={1.5}
+                />
+              </div>
+              <p className="mt-2 text-sm text-[var(--brand-cream)]/70">{stat.label}</p>
             </MotionStaggerItem>
           ))}
         </MotionStagger>
+      </section>
+
+      {/* ============= MARQUEE — types de restos ============= */}
+      <section className="relative overflow-hidden border-b py-6">
+        <div className="text-muted-foreground container mx-auto mb-3 px-4 text-center text-xs font-medium tracking-wide uppercase">
+          Adapté à tous les types d&apos;établissements
+        </div>
+        <Marquee durationS={40}>
+          {TESTIMONIAL_RESTOS.map((name) => (
+            <RestoLogo key={name} name={name} />
+          ))}
+        </Marquee>
       </section>
 
       {/* ============= COMMENT ÇA MARCHE ============= */}
@@ -368,5 +406,32 @@ export default function HomePage() {
         </MotionSection>
       </section>
     </>
+  );
+}
+
+function RestoLogo({ name }: { name: string }) {
+  // Premier mot pour l'icône, le reste affiché sobrement
+  const initial = name.charAt(0);
+  const colors = [
+    "bg-[var(--brand-orange)]/20 text-[var(--brand-orange)]",
+    "bg-[var(--brand-forest)]/15 text-[var(--brand-forest)]",
+    "bg-[var(--brand-saffron)]/30 text-[color:oklch(0.45_0.12_60)]",
+    "bg-[var(--brand-tomato)]/15 text-[var(--brand-tomato)]",
+  ];
+  // Hash simple pour pin une couleur déterministe par resto
+  const colorIdx =
+    name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
+
+  return (
+    <div className="flex shrink-0 items-center gap-2.5 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+      <div
+        className={`flex size-8 items-center justify-center rounded-md font-bold ${colors[colorIdx]}`}
+      >
+        {initial}
+      </div>
+      <span className="text-muted-foreground font-medium tracking-tight whitespace-nowrap">
+        {name}
+      </span>
+    </div>
   );
 }

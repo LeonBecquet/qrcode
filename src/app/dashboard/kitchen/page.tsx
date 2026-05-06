@@ -1,7 +1,9 @@
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { ChefHat } from "lucide-react";
 import { KitchenSubscriber } from "./subscribe";
 import { OrderCard } from "./order-card";
 import { ServiceRequestCard } from "./service-request-card";
+import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/db/client";
 import { type OrderStatus, orderItems, orders, serviceRequests } from "@/lib/db/schema";
 import { requireRestaurant } from "@/lib/server/session";
@@ -80,17 +82,32 @@ export default async function KitchenPage() {
     <div className="space-y-6">
       <KitchenSubscriber restaurantId={ctx.restaurant.id} />
 
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Cuisine</h1>
-        <p className="text-muted-foreground mt-1">
-          Vue temps réel des commandes et appels serveur. Maintenez cet écran ouvert pendant le
-          service.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] flex size-12 items-center justify-center rounded-xl">
+            <ChefHat className="size-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Cuisine</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Vue temps réel — gardez cet écran ouvert pendant le service.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-full bg-[var(--brand-forest)]/10 px-3 py-1.5 text-xs font-medium text-[var(--brand-forest)]">
+          <span className="relative flex size-2">
+            <span className="absolute inset-0 animate-ping rounded-full bg-[var(--brand-forest)] opacity-75" />
+            <span className="relative size-2 rounded-full bg-[var(--brand-forest)]" />
+          </span>
+          En direct
+        </div>
       </div>
 
       {pendingRequests.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium tracking-wide uppercase">Appels serveur</h2>
+          <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+            🔔 Appels serveur en attente
+          </h2>
           <div className="space-y-2">
             {pendingRequests.map((req) => (
               <ServiceRequestCard key={req.id} request={req} />
@@ -100,11 +117,27 @@ export default async function KitchenPage() {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium tracking-wide uppercase">Commandes</h2>
+        <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+          Commandes en cours
+        </h2>
         {activeOrders.length === 0 ? (
-          <p className="text-muted-foreground py-12 text-center">
-            Aucune commande active. La prochaine apparaîtra ici en temps réel.
-          </p>
+          <Card className="relative overflow-hidden border-dashed">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-[var(--brand-orange)]/15 blur-3xl"
+            />
+            <CardContent className="relative flex flex-col items-center gap-3 py-16 text-center">
+              <div className="bg-[var(--brand-saffron)]/30 text-[var(--brand-orange)] flex size-16 items-center justify-center rounded-2xl">
+                <ChefHat className="size-8" />
+              </div>
+              <div>
+                <p className="font-semibold">C&apos;est calme...</p>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">
+                  Aucune commande active. La prochaine apparaîtra ici en temps réel.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-4 lg:grid-cols-4">
             {COLUMNS.map((col) => {

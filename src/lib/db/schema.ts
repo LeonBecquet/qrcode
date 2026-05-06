@@ -246,6 +246,77 @@ export const menuItems = pgTable("menu_items", {
 
 export const optionType = pgEnum("option_type", ["single", "multiple"]);
 
+// =====================================================
+// Orders
+// =====================================================
+
+export const orderStatus = pgEnum("order_status", [
+  "pending",
+  "accepted",
+  "in_kitchen",
+  "ready",
+  "served",
+  "canceled",
+]);
+
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  restaurantId: uuid("restaurant_id")
+    .notNull()
+    .references(() => restaurants.id, { onDelete: "cascade" }),
+  tableId: uuid("table_id").references(() => tables.id, { onDelete: "set null" }),
+  tableLabelSnapshot: varchar("table_label_snapshot", { length: 32 }).notNull(),
+  status: orderStatus("status").notNull().default("pending"),
+  customerName: text("customer_name"),
+  customerNote: text("customer_note"),
+  subtotalCents: integer("subtotal_cents").notNull(),
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  servedAt: timestamp("served_at"),
+});
+
+export type OrderItemOptionSnapshot = {
+  optionName: string;
+  choiceName: string;
+  priceDeltaCents: number;
+};
+
+export const orderItems = pgTable("order_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  menuItemId: uuid("menu_item_id").references(() => menuItems.id, { onDelete: "set null" }),
+  nameSnapshot: text("name_snapshot").notNull(),
+  priceCentsSnapshot: integer("price_cents_snapshot").notNull(),
+  quantity: integer("quantity").notNull(),
+  optionsSnapshot: jsonb("options_snapshot")
+    .$type<OrderItemOptionSnapshot[]>()
+    .notNull()
+    .default([]),
+  subtotalCents: integer("subtotal_cents").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const serviceRequestType = pgEnum("service_request_type", [
+  "call_waiter",
+  "request_bill",
+]);
+
+export const serviceRequests = pgTable("service_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  restaurantId: uuid("restaurant_id")
+    .notNull()
+    .references(() => restaurants.id, { onDelete: "cascade" }),
+  tableId: uuid("table_id").references(() => tables.id, { onDelete: "set null" }),
+  tableLabelSnapshot: varchar("table_label_snapshot", { length: 32 }).notNull(),
+  type: serviceRequestType("type").notNull().default("call_waiter"),
+  isResolved: boolean("is_resolved").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
 export const menuItemOptions = pgTable("menu_item_options", {
   id: uuid("id").primaryKey().defaultRandom(),
   itemId: uuid("item_id")
@@ -333,6 +404,25 @@ export const menuItemOptionChoiceRelations = relations(menuItemOptionChoices, ({
   }),
 }));
 
+export const orderRelations = relations(orders, ({ one, many }) => ({
+  restaurant: one(restaurants, {
+    fields: [orders.restaurantId],
+    references: [restaurants.id],
+  }),
+  table: one(tables, {
+    fields: [orders.tableId],
+    references: [tables.id],
+  }),
+  items: many(orderItems),
+}));
+
+export const orderItemRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+}));
+
 export const restaurantHoursRelations = relations(restaurantHours, ({ one }) => ({
   restaurant: one(restaurants, {
     fields: [restaurantHours.restaurantId],
@@ -379,7 +469,12 @@ export type MenuCategory = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type MenuItemOption = typeof menuItemOptions.$inferSelect;
 export type MenuItemOptionChoice = typeof menuItemOptionChoices.$inferSelect;
+export type Order = typeof orders.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type ServiceRequest = typeof serviceRequests.$inferSelect;
 export type MemberRole = (typeof memberRole.enumValues)[number];
 export type SubTier = (typeof subTier.enumValues)[number];
 export type SubStatus = (typeof subStatusEnum.enumValues)[number];
 export type OptionType = (typeof optionType.enumValues)[number];
+export type OrderStatus = (typeof orderStatus.enumValues)[number];
+export type ServiceRequestType = (typeof serviceRequestType.enumValues)[number];

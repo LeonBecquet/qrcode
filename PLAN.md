@@ -279,11 +279,12 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - ✅ Helpers d'ownership (ensureMenu/Category/ItemOwnership) pour empêcher le cross-tenant access
 - ✅ Header dashboard : ajout du lien "Menus"
 
-**4B — Photos + options + reorder** ⏳ À VENIR
-- Upload photo par item (R2)
-- CRUD options + choices (cuisson, suppléments)
-- Drag-and-drop reorder (`@dnd-kit`) catégories + items
-- Templates pré-remplis (Bistrot, Pizzeria...) — optionnel
+**4B — Photos + options** ✅ FAIT
+- ✅ Upload + remove photo par item (R2, namespace `restaurants/{id}/items/{itemId}-{ts}.{ext}`)
+- ✅ CRUD options + choices : add option (single/multiple, required toggle), add choice (nom FR+EN, prix delta, default), delete option (cascade choices), delete choice
+- ✅ Section Options imbriquée sur `/dashboard/menu/[menuId]/items/[itemId]` avec forms client compacts
+- ⏳ Drag-and-drop reorder (`@dnd-kit`) → reporté (input `sort_order` numérique en attendant si vraiment besoin)
+- ⏳ Templates pré-remplis (Bistrot, Pizzeria...) → reporté hors MVP
 
 ### **Phase 5 — Tables & QR** (j20-22)
 - CRUD tables avec groupes

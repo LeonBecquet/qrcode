@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -9,10 +9,13 @@ import {
   ALLERGENS,
   type Allergen,
   menuCategories,
+  menuItemOptions,
+  menuItemOptionChoices,
   menuItems,
   menus,
 } from "@/lib/db/schema";
 import { requireRestaurant } from "@/lib/server/session";
+import { ALLOWED_IMAGE_MIME, inferExtension, MAX_IMAGE_SIZE, uploadToR2 } from "@/lib/storage";
 
 export type ActionResult = { error: string };
 
@@ -260,4 +263,199 @@ export async function toggleItemAvailableAction(
     .where(eq(menuItems.id, itemId));
 
   revalidatePath(`/dashboard/menu/${owned.menuId}`);
+}
+
+export async function uploadItemImageAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const itemId = String(formData.get("itemId") ?? "");
+  const owned = await ensureItemOwnership(itemId, ctx.restaurant.id);
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "Aucun fichier." };
+  if (file.size > MAX_IMAGE_SIZE) return { error: "Trop lourd (max 5 MB)." };
+  if (!(ALLOWED_IMAGE_MIME as readonly string[]).includes(file.type)) {
+    return { error: "Type non supporté (JPG, PNG, WebP)." };
+  }
+
+  const ext = inferExtension(file.type);
+  const key = `restaurants/${ctx.restaurant.id}/items/${itemId}-${Date.now()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  let url: string;
+  try {
+    url = await uploadToR2({ key, body: buffer, contentType: file.type });
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Upload échoué." };
+  }
+
+  await db
+    .update(menuItems)
+    .set({ imageUrl: url, updatedAt: new Date() })
+    .where(eq(menuItems.id, itemId));
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}`);
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${itemId}`);
+}
+
+export async function removeItemImageAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const itemId = String(formData.get("itemId") ?? "");
+  const owned = await ensureItemOwnership(itemId, ctx.restaurant.id);
+
+  await db
+    .update(menuItems)
+    .set({ imageUrl: null, updatedAt: new Date() })
+    .where(eq(menuItems.id, itemId));
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}`);
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${itemId}`);
+}
+
+// =====================================================
+// Options + Choices
+// =====================================================
+
+const optionSchema = z.object({
+  nameFr: z.string().trim().min(1, "Nom FR requis.").max(80),
+  nameEn: z.string().trim().max(80).optional().or(z.literal("")),
+  type: z.enum(["single", "multiple"]),
+  isRequired: z.boolean(),
+});
+
+export async function createOptionAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const itemId = String(formData.get("itemId") ?? "");
+  const owned = await ensureItemOwnership(itemId, ctx.restaurant.id);
+
+  const parsed = optionSchema.safeParse({
+    nameFr: formData.get("nameFr"),
+    nameEn: formData.get("nameEn") ?? "",
+    type: formData.get("type") ?? "single",
+    isRequired: formData.get("isRequired") === "on",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Champs invalides." };
+
+  const existing = await db
+    .select({ id: menuItemOptions.id })
+    .from(menuItemOptions)
+    .where(eq(menuItemOptions.itemId, itemId));
+
+  await db.insert(menuItemOptions).values({
+    itemId,
+    nameFr: parsed.data.nameFr,
+    nameEn: parsed.data.nameEn || null,
+    type: parsed.data.type,
+    isRequired: parsed.data.isRequired,
+    sortOrder: existing.length,
+  });
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${itemId}`);
+}
+
+export async function deleteOptionAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const optionId = String(formData.get("optionId") ?? "");
+
+  const found = await db
+    .select({
+      itemId: menuItemOptions.itemId,
+      categoryId: menuItems.categoryId,
+      menuId: menuCategories.menuId,
+    })
+    .from(menuItemOptions)
+    .innerJoin(menuItems, eq(menuItemOptions.itemId, menuItems.id))
+    .innerJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
+    .innerJoin(menus, eq(menuCategories.menuId, menus.id))
+    .where(and(eq(menuItemOptions.id, optionId), eq(menus.restaurantId, ctx.restaurant.id)))
+    .limit(1);
+  if (found.length === 0) return { error: "Option introuvable." };
+  const owned = found[0]!;
+
+  await db.delete(menuItemOptions).where(eq(menuItemOptions.id, optionId));
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${owned.itemId}`);
+}
+
+const choiceSchema = z.object({
+  nameFr: z.string().trim().min(1, "Nom FR requis.").max(80),
+  nameEn: z.string().trim().max(80).optional().or(z.literal("")),
+  priceDeltaCents: z.number().int().min(-100_000).max(100_000),
+  isDefault: z.boolean(),
+});
+
+async function ensureOptionOwnership(optionId: string, restaurantId: string) {
+  const found = await db
+    .select({
+      itemId: menuItemOptions.itemId,
+      categoryId: menuItems.categoryId,
+      menuId: menuCategories.menuId,
+    })
+    .from(menuItemOptions)
+    .innerJoin(menuItems, eq(menuItemOptions.itemId, menuItems.id))
+    .innerJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
+    .innerJoin(menus, eq(menuCategories.menuId, menus.id))
+    .where(and(eq(menuItemOptions.id, optionId), eq(menus.restaurantId, restaurantId)))
+    .limit(1);
+  if (found.length === 0) throw new Error("Option introuvable.");
+  return found[0]!;
+}
+
+export async function createChoiceAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const optionId = String(formData.get("optionId") ?? "");
+  const owned = await ensureOptionOwnership(optionId, ctx.restaurant.id);
+
+  const priceRaw = String(formData.get("priceDeltaEur") ?? "0").replace(",", ".");
+  const priceFloat = Number.parseFloat(priceRaw);
+  const priceDeltaCents = Number.isFinite(priceFloat) ? Math.round(priceFloat * 100) : 0;
+
+  const parsed = choiceSchema.safeParse({
+    nameFr: formData.get("nameFr"),
+    nameEn: formData.get("nameEn") ?? "",
+    priceDeltaCents,
+    isDefault: formData.get("isDefault") === "on",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Champs invalides." };
+
+  const existing = await db
+    .select({ id: menuItemOptionChoices.id })
+    .from(menuItemOptionChoices)
+    .where(eq(menuItemOptionChoices.optionId, optionId))
+    .orderBy(asc(menuItemOptionChoices.sortOrder));
+
+  await db.insert(menuItemOptionChoices).values({
+    optionId,
+    nameFr: parsed.data.nameFr,
+    nameEn: parsed.data.nameEn || null,
+    priceDeltaCents: parsed.data.priceDeltaCents,
+    isDefault: parsed.data.isDefault,
+    sortOrder: existing.length,
+  });
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${owned.itemId}`);
+}
+
+export async function deleteChoiceAction(formData: FormData): Promise<ActionResult | void> {
+  const ctx = await requireRestaurant();
+  const choiceId = String(formData.get("choiceId") ?? "");
+
+  const found = await db
+    .select({
+      optionId: menuItemOptionChoices.optionId,
+      itemId: menuItemOptions.itemId,
+      menuId: menuCategories.menuId,
+    })
+    .from(menuItemOptionChoices)
+    .innerJoin(menuItemOptions, eq(menuItemOptionChoices.optionId, menuItemOptions.id))
+    .innerJoin(menuItems, eq(menuItemOptions.itemId, menuItems.id))
+    .innerJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
+    .innerJoin(menus, eq(menuCategories.menuId, menus.id))
+    .where(and(eq(menuItemOptionChoices.id, choiceId), eq(menus.restaurantId, ctx.restaurant.id)))
+    .limit(1);
+  if (found.length === 0) return { error: "Choix introuvable." };
+  const owned = found[0]!;
+
+  await db.delete(menuItemOptionChoices).where(eq(menuItemOptionChoices.id, choiceId));
+
+  revalidatePath(`/dashboard/menu/${owned.menuId}/items/${owned.itemId}`);
 }

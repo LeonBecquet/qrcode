@@ -1,15 +1,25 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SignOutButton } from "./sign-out-button";
+import type { SubStatus } from "@/lib/db/schema";
 import { requireRestaurant } from "@/lib/server/session";
+
+const ALLOWED_SUB_STATUSES: SubStatus[] = ["active", "trialing", "past_due"];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireRestaurant();
+
+  if (!ctx.restaurant.subStatus || !ALLOWED_SUB_STATUSES.includes(ctx.restaurant.subStatus)) {
+    redirect("/pricing");
+  }
+
+  const isPastDue = ctx.restaurant.subStatus === "past_due";
 
   return (
     <div className="bg-background min-h-svh">
       <header className="bg-card sticky top-0 z-10 border-b">
         <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link href="/dashboard" className="font-semibold">
               {ctx.restaurant.name}
             </Link>
@@ -17,12 +27,29 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {ctx.role}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-4 text-sm">
+            <Link href="/dashboard" className="hover:underline">
+              Vue d&apos;ensemble
+            </Link>
+            <Link href="/dashboard/settings" className="hover:underline">
+              Réglages
+            </Link>
             <span className="text-muted-foreground hidden text-sm sm:inline">{ctx.user.email}</span>
             <SignOutButton />
-          </div>
+          </nav>
         </div>
       </header>
+      {isPastDue ? (
+        <div className="bg-destructive/10 text-destructive border-destructive/20 border-b">
+          <div className="container mx-auto px-4 py-2 text-sm">
+            Paiement échoué.{" "}
+            <Link href="/dashboard/settings" className="underline">
+              Mettez à jour votre moyen de paiement
+            </Link>{" "}
+            pour éviter une suspension.
+          </div>
+        </div>
+      ) : null}
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );

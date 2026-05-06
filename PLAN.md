@@ -241,14 +241,18 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - **Livrable** : signup → onboarding → dashboard fonctionne end-to-end. Build prod passe.
 - **Migration DB** générée : `drizzle/0000_curious_crusher_hogan.sql` (à appliquer avec `pnpm db:push` ou `pnpm db:migrate` une fois le `DATABASE_URL` Neon configuré).
 
-### **Phase 2 — Stripe Billing & sub gate** (j6-9)
-- 3 prix Stripe créés (script de seed)
-- Page `/pricing` publique avec CTA → checkout
-- Webhook Stripe : `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`
-- Lifetime traité différemment : one-time price, on stamp `lifetime_purchased_at` et `status='active'` à vie
-- Middleware sub gate sur `/dashboard/*` : redirect vers `/pricing` si pas active
-- Lien Stripe Customer Portal dans settings → gestion CB / annulation
-- **Livrable** : un nouvel user peut payer monthly/annual/lifetime, accéder au dashboard, gérer sa carte.
+### **Phase 2 — Stripe Billing & sub gate** ✅ FAIT
+- ✅ Stripe SDK installé, lib `src/lib/stripe.ts` avec lazy init + `TIER_CONFIG` (mode subscription vs payment selon tier)
+- ✅ ENV Stripe optionnelles (5 vars) — code throw au runtime si appelé sans config
+- ✅ Page `/pricing` avec 3 cards (49 € / 499 € / 2000 €), highlight sur l'annuel, gestion `?checkout=canceled`
+- ✅ Server action `startCheckoutAction` : crée Stripe customer si absent, crée checkout session avec metadata `restaurantId` + `tier`, retourne `{ url }` pour redirect côté client
+- ✅ Webhook `/api/stripe/webhook` : signature verified, gère `checkout.session.completed` (lifetime stamp ou subscription), `customer.subscription.{created,updated,deleted}` et `invoice.payment_failed`
+- ✅ Sub gate dans `dashboard/layout.tsx` : redirect `/pricing` si pas `active|trialing|past_due`. Banner d'alerte si `past_due`.
+- ✅ Page `/dashboard/settings` : statut abo + bouton "Gérer mon abonnement" → Stripe Customer Portal
+- ✅ Lifetime géré : `subStatus='active'` + `lifetimePurchasedAt` stamp, pas de portal (rien à gérer)
+- ⏳ Script de seed des 3 prix Stripe → reporté (le user crée à la main dans Stripe Dashboard, plus simple pour MVP)
+- **Livrable** : signup → onboarding → /pricing → Stripe Checkout → webhook → /dashboard accessible. Gestion abo via Stripe Portal pour mensuel/annuel.
+- **Pour tester en local** : `stripe listen --forward-to localhost:3000/api/stripe/webhook` et coller le whsec_ dans `.env.local`. Créer 3 produits Stripe (test mode) avec recurring 49€/mois, 499€/an, one-time 2000€ et coller les `price_id`.
 
 ### **Phase 3 — Restaurant & branding** (j10-12)
 - CRUD restaurants (1 par défaut à la signup, possibilité d'en ajouter)

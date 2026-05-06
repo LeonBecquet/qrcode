@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TableCard } from "./table-card";
+import { FloorMap } from "./floor-map";
 import { TableRow } from "./table-row";
 import { ViewToggle, type TablesView } from "./view-toggle";
 import {
@@ -28,31 +28,7 @@ export function TablesView({ groups, scanUrls }: Props) {
       </div>
 
       {view === "grid" ? (
-        <div className="space-y-8">
-          {groups.map((group) => (
-            <div key={group.name ?? "_none"} className="space-y-3">
-              <div className="flex items-baseline justify-between gap-2">
-                <h2 className="text-lg font-semibold tracking-tight">
-                  {group.name ?? "Sans groupe"}
-                </h2>
-                <span className="text-muted-foreground text-xs">
-                  {group.tables.length} table{group.tables.length > 1 ? "s" : ""} ·{" "}
-                  {group.tables.filter((t) => t.isActive).length} active
-                  {group.tables.filter((t) => t.isActive).length > 1 ? "s" : ""}
-                </span>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {group.tables.map((table) => (
-                  <TableCard
-                    key={table.id}
-                    table={table}
-                    scanUrl={scanUrls[table.id] ?? ""}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <FloorMap groups={groups} scanUrls={scanUrls} />
       ) : (
         <div className="space-y-6">
           {groups.map((group) => (

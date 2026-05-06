@@ -382,15 +382,17 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 **⏳ Reportés post-MVP** : email résumé quotidien (cron Vercel), Sentry monitoring (à brancher au déploiement), screenshots produits dans la landing
 - **Livrable** : marketing en place, conformité RGPD couverte (pages à valider), emails transactionnels fonctionnels.
 
-### **Phase 11 — Tests E2E & polish** (j47-50)
-- Playwright sur 3 flows critiques :
-  1. Signup → checkout → onboarding → menu créé → QR généré
-  2. Client scan → commande passée
-  3. Cuisine reçoit en temps réel et change le statut
-- Audit accessibilité (axe-core)
-- Performance Lighthouse sur le menu client (cible >90, c'est le hot path)
-- Tests de charge léger (k6 sur l'endpoint commande)
-- **Livrable** : production-ready.
+### **Phase 11 — Tests E2E & polish** ✅ FAIT (scaffolding + checklist)
+- ✅ Playwright installé + config (chromium desktop + iPhone 14 mobile + locale fr-FR)
+- ✅ Smoke tests sans DB : `landing.spec.ts` (hero, sections, footer, perf < 5s), `auth-pages.spec.ts` (formulaires + redirect non-auth), `legal-pages.spec.ts` (5 pages + sitemap + robots)
+- ✅ `full-flows.spec.ts` : 3 flows critiques stubés avec `test.skip` (signup→checkout, scan→commande, cuisine temps réel) — à activer quand env de test DB prêt
+- ✅ Scripts `pnpm test:e2e`, `test:e2e:ui`, `test:e2e:install`
+- ✅ `PRODUCTION_CHECKLIST.md` avec 10 sections : services externes, env vars, migrations, conformité légale, **tests manuels critiques**, performance, monitoring, activation admin, derniers points
+- ✅ README étoffé : démarrage local, scripts, structure complète, tests, statut
+- ⏳ Audit a11y axe-core → reporté (manuel via DevTools)
+- ⏳ Lighthouse perf → reporté (manuel après déploiement)
+- ⏳ Tests de charge k6 → reporté (à faire après les premiers vrais clients)
+- **Livrable** : suite de tests smoke fonctionnelle + checklist exhaustive pour la mise en prod.
 
 **Total estimé : ~50 jours de dev solo focus.** Réaliste si tu y bosses tous les jours.
 

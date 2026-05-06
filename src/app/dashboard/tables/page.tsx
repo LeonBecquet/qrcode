@@ -2,15 +2,9 @@ import { asc, eq } from "drizzle-orm";
 import { Printer, QrCode } from "lucide-react";
 import Link from "next/link";
 import { AddTableForms } from "./add-table-form";
-import { TableRow } from "./table-row";
+import { TablesView } from "./tables-view";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/db/client";
 import { tables } from "@/lib/db/schema";
 import { buildTableUrl } from "@/lib/qr";
@@ -26,17 +20,24 @@ export default async function TablesPage() {
     .orderBy(asc(tables.sortOrder), asc(tables.createdAt));
 
   // Group tables by groupName
-  const groups = new Map<string | null, typeof rows>();
+  const groupsMap = new Map<string | null, typeof rows>();
   for (const row of rows) {
-    const list = groups.get(row.groupName) ?? [];
+    const list = groupsMap.get(row.groupName) ?? [];
     list.push(row);
-    groups.set(row.groupName, list);
+    groupsMap.set(row.groupName, list);
   }
-  const groupEntries = Array.from(groups.entries()).sort(([a], [b]) => {
-    if (a === null) return 1;
-    if (b === null) return -1;
-    return a.localeCompare(b, "fr");
-  });
+  const groups = Array.from(groupsMap.entries())
+    .sort(([a], [b]) => {
+      if (a === null) return 1;
+      if (b === null) return -1;
+      return a.localeCompare(b, "fr");
+    })
+    .map(([name, ts]) => ({ name, tables: ts }));
+
+  const scanUrls: Record<string, string> = {};
+  for (const t of rows) {
+    scanUrls[t.id] = buildTableUrl(ctx.restaurant.slug, t.token);
+  }
 
   const totalActive = rows.filter((r) => r.isActive).length;
 
@@ -51,7 +52,7 @@ export default async function TablesPage() {
             <h1 className="text-3xl font-semibold tracking-tight">Tables</h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {rows.length > 0
-                ? `${rows.length} table${rows.length > 1 ? "s" : ""} · ${totalActive} active${totalActive > 1 ? "s" : ""}`
+                ? `${rows.length} table${rows.length > 1 ? "s" : ""} · ${totalActive} active${totalActive > 1 ? "s" : ""} · ${groups.length} groupe${groups.length > 1 ? "s" : ""}`
                 : "Une URL scannable par table. Régénérez un token pour invalider un QR perdu."}
             </p>
           </div>
@@ -90,41 +91,14 @@ export default async function TablesPage() {
             <div>
               <p className="font-semibold">Aucune table configurée</p>
               <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-                Ajoutez une ou plusieurs tables ci-dessus, puis téléchargez le PDF des QR codes
-                à plastifier.
+                Ajoutez une ou plusieurs tables ci-dessus, puis téléchargez le PDF des QR codes à
+                plastifier.
               </p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {groupEntries.map(([groupName, list]) => (
-            <Card key={groupName ?? "_none"}>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {groupName ?? "Sans groupe"}
-                  <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    ({list.length})
-                  </span>
-                </CardTitle>
-                <CardDescription>
-                  {list.filter((t) => t.isActive).length} active{list.filter((t) => t.isActive).length > 1 ? "s" : ""}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ul className="divide-y">
-                  {list.map((table) => (
-                    <TableRow
-                      key={table.id}
-                      table={table}
-                      scanUrl={buildTableUrl(ctx.restaurant.slug, table.token)}
-                    />
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <TablesView groups={groups} scanUrls={scanUrls} />
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import {
   toggleTableActiveAction,
   updateTableAction,
 } from "./actions";
+import { MiniQr } from "@/components/mini-qr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Table } from "@/lib/db/schema";
@@ -101,32 +102,52 @@ export function TableRow({ table, scanUrl }: { table: Table; scanUrl: string }) 
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-3 px-4 py-3">
-      <span className="w-20 font-medium">{table.label}</span>
-      {table.groupName ? (
-        <span className="text-muted-foreground bg-muted rounded px-1.5 py-0.5 text-xs">
-          {table.groupName}
-        </span>
-      ) : null}
-      {!table.isActive ? (
-        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-400">
-          Désactivée
-        </span>
-      ) : null}
-      <Link
-        href={scanUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-muted-foreground hover:text-foreground min-w-0 flex-1 truncate font-mono text-xs"
-        title="Ouvrir l'URL scannée"
-      >
-        {scanUrl}
-      </Link>
+    <li
+      className={`hover:bg-muted/30 flex flex-wrap items-center gap-3 px-4 py-3 transition-colors ${
+        !table.isActive ? "opacity-60" : ""
+      }`}
+    >
+      {/* Mini QR visuel */}
+      <div className="bg-[var(--brand-cream)] flex size-12 shrink-0 items-center justify-center rounded-lg border shadow-sm">
+        <MiniQr
+          token={table.token}
+          size={44}
+          color="var(--brand-forest)"
+          accent="var(--brand-orange)"
+          bg="transparent"
+        />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{table.label}</span>
+          {table.groupName ? (
+            <span className="bg-[var(--brand-saffron)]/20 text-[color:oklch(0.4_0.1_60)] rounded-full px-2 py-0.5 text-xs">
+              {table.groupName}
+            </span>
+          ) : null}
+          {!table.isActive ? (
+            <span className="bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded-full px-2 py-0.5 text-xs">
+              Désactivée
+            </span>
+          ) : null}
+        </div>
+        <Link
+          href={scanUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-[var(--brand-orange)] block truncate font-mono text-xs transition-colors"
+          title="Ouvrir l'URL scannée"
+        >
+          {scanUrl}
+        </Link>
+      </div>
+
       <div className="flex items-center gap-1">
         <Link
           href={`/api/qr-pdf?tableId=${table.id}`}
           target="_blank"
-          className="text-xs underline-offset-4 hover:underline"
+          className="bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] hover:bg-[var(--brand-orange)]/20 rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
         >
           PDF
         </Link>

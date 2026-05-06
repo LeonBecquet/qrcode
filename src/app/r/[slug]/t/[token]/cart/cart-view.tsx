@@ -126,12 +126,6 @@ export function CartView({ slug, token }: { slug: string; token: string }) {
       <p className="text-muted-foreground text-center text-xs">
         La commande sera envoyée en cuisine. Vous payez à la fin du repas, comme d&apos;habitude.
       </p>
-
-      <Card className="border-dashed">
-        <CardContent className="text-muted-foreground py-6 text-center text-sm">
-          Validation de commande arrive bientôt (Phase 6B).
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CallWaiterButton } from "./call-waiter-button";
 import { resolvePublicTable } from "@/lib/server/public-resolver";
 
 export default async function PublicTableLayout({
@@ -45,6 +46,7 @@ export default async function PublicTableLayout({
               {table.groupName ? ` · ${table.groupName}` : ""}
             </p>
           </div>
+          <CallWaiterButton slug={slug} token={token} />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-32">{children}</main>

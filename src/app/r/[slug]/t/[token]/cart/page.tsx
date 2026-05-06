@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { CartView } from "./cart-view";
+import { CheckoutForm } from "./checkout-form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { resolvePublicTable } from "@/lib/server/public-resolver";
 
 export default async function PublicCartPage({
@@ -20,6 +28,16 @@ export default async function PublicCartPage({
       </Link>
       <h1 className="text-2xl font-semibold tracking-tight">Mon panier</h1>
       <CartView slug={slug} token={token} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Validation</CardTitle>
+          <CardDescription>Pas de paiement en ligne. Vous réglez au resto.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CheckoutForm slug={slug} token={token} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

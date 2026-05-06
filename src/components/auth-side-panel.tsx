@@ -7,35 +7,95 @@ import { Logo } from "@/components/logo";
 
 type Props = {
   tagline: string;
-  highlights?: { value: string; label: string }[];
 };
 
-const LIVE_EVENTS = [
-  { table: "T5", action: "vient de commander", item: "2× Burrata", color: "var(--brand-orange)" },
-  { table: "Terrasse 3", action: "→ envoyé en cuisine", item: "Pâtes truffées", color: "var(--brand-forest)" },
-  { table: "T12", action: "vient de scanner", item: "Carte du soir", color: "var(--brand-saffron)" },
-  { table: "T8", action: "→ commande prête", item: "3 plats", color: "var(--brand-orange)" },
-  { table: "T2", action: "vient de commander", item: "1× Tartare", color: "var(--brand-tomato)" },
-  { table: "Bar 4", action: "→ servi", item: "Carafe + entrées", color: "var(--brand-forest)" },
+const KITCHEN_ORDERS = [
+  {
+    id: 1,
+    table: "T5",
+    items: "2× Tartare · 1× Burrata",
+    status: "in_kitchen" as const,
+    color: "var(--brand-orange)",
+    time: "il y a 2 min",
+  },
+  {
+    id: 2,
+    table: "Terrasse 3",
+    items: "3× Pâtes truffe",
+    status: "ready" as const,
+    color: "var(--brand-saffron)",
+    time: "il y a 4 min",
+  },
+  {
+    id: 3,
+    table: "T12",
+    items: "1× Steak · 2× Frites",
+    status: "pending" as const,
+    color: "var(--brand-tomato)",
+    time: "à l'instant",
+  },
+  {
+    id: 4,
+    table: "Bar 4",
+    items: "2× Mojito",
+    status: "ready" as const,
+    color: "var(--brand-orange)",
+    time: "il y a 1 min",
+  },
+  {
+    id: 5,
+    table: "T8",
+    items: "1× Tiramisu",
+    status: "in_kitchen" as const,
+    color: "var(--brand-saffron)",
+    time: "il y a 6 min",
+  },
 ];
 
-export function AuthSidePanel({ tagline, highlights }: Props) {
+const STATUS_LABEL = {
+  pending: "Reçue",
+  in_kitchen: "En cuisine",
+  ready: "Prête",
+} as const;
+
+const STATUS_STYLES = {
+  pending: { bg: "rgba(208, 74, 51, 0.2)", color: "#FF8B7A" },
+  in_kitchen: { bg: "rgba(238, 128, 51, 0.2)", color: "#EE8033" },
+  ready: { bg: "rgba(245, 195, 66, 0.2)", color: "#F5C342" },
+} as const;
+
+export function AuthSidePanel({ tagline }: Props) {
   const prefersReduced = useReducedMotion();
-  const [eventIdx, setEventIdx] = useState(0);
+  const [shift, setShift] = useState(0);
 
   useEffect(() => {
     if (prefersReduced) return;
     const id = window.setInterval(() => {
-      setEventIdx((i) => (i + 1) % LIVE_EVENTS.length);
-    }, 2800);
+      setShift((s) => (s + 1) % KITCHEN_ORDERS.length);
+    }, 3500);
     return () => window.clearInterval(id);
   }, [prefersReduced]);
 
-  const event = LIVE_EVENTS[eventIdx]!;
+  const visibleOrders = [
+    KITCHEN_ORDERS[shift % KITCHEN_ORDERS.length]!,
+    KITCHEN_ORDERS[(shift + 1) % KITCHEN_ORDERS.length]!,
+    KITCHEN_ORDERS[(shift + 2) % KITCHEN_ORDERS.length]!,
+  ];
 
   return (
     <aside className="text-[var(--brand-cream)] relative hidden flex-col justify-between overflow-hidden bg-[var(--brand-forest)] p-10 md:flex lg:p-14">
-      {/* Decorative blobs animés */}
+      {/* Pattern grid subtil en background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--brand-cream) 1px, transparent 1px), linear-gradient(90deg, var(--brand-cream) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      {/* Blobs animés */}
       <div
         aria-hidden="true"
         className="animate-blob-1 pointer-events-none absolute -top-32 -right-32 h-[360px] w-[360px] rounded-full bg-[var(--brand-orange)]/30 blur-3xl"
@@ -45,38 +105,8 @@ export function AuthSidePanel({ tagline, highlights }: Props) {
         className="animate-blob-2 pointer-events-none absolute -bottom-32 -left-32 h-[360px] w-[360px] rounded-full bg-[var(--brand-saffron)]/25 blur-3xl"
       />
 
-      {/* Mini QR pattern décoratif qui flotte */}
-      <div
-        aria-hidden="true"
-        className="animate-float-rotate absolute top-12 right-12 size-28 rotate-12 rounded-2xl bg-[var(--brand-cream)]/10 p-3 backdrop-blur"
-      >
-        <div className="grid h-full grid-cols-5 grid-rows-5 gap-1">
-          {Array.from({ length: 25 }, (_, i) => {
-            const corners = [0, 4, 20];
-            const isCorner = corners.includes(i);
-            const isAccent = i === 24;
-            const random = [6, 8, 12, 13, 16, 18];
-            const filled = isCorner || isAccent || random.includes(i);
-            return (
-              <div
-                key={i}
-                className={
-                  isAccent
-                    ? "rounded bg-[var(--brand-orange)]"
-                    : isCorner
-                      ? "rounded bg-[var(--brand-saffron)]"
-                      : filled
-                        ? "rounded bg-[var(--brand-cream)]"
-                        : ""
-                }
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Logo */}
-      <div className="relative">
+      {/* Logo + tagline */}
+      <div className="relative space-y-6">
         <Link
           href="/"
           className="inline-flex items-center gap-2 transition-opacity hover:opacity-80"
@@ -84,68 +114,121 @@ export function AuthSidePanel({ tagline, highlights }: Props) {
           <Logo size={32} />
           <span className="text-base font-semibold tracking-tight">QR Restaurant</span>
         </Link>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="space-y-3"
+        >
+          <div className="bg-[var(--brand-orange)] inline-block size-2 rounded-full" />
+          <h2 className="text-2xl leading-tight font-semibold tracking-tight lg:text-[2rem]">
+            {tagline}
+          </h2>
+        </motion.div>
       </div>
 
-      {/* Live ticker — événements qui défilent */}
-      <div className="relative space-y-6">
-        <div className="bg-[var(--brand-orange)] inline-block size-2 rounded-full" />
-
-        <blockquote className="text-3xl leading-tight font-semibold tracking-tight lg:text-4xl">
-          {tagline}
-        </blockquote>
-
-        {/* Live events ticker */}
-        <div className="border-[var(--brand-cream)]/15 rounded-xl border bg-[var(--brand-cream)]/5 p-4 backdrop-blur">
-          <div className="text-[var(--brand-saffron)] mb-3 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-            <span className="relative flex size-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[var(--brand-saffron)] opacity-75" />
-              <span className="relative size-2 rounded-full bg-[var(--brand-saffron)]" />
+      {/* Mini dashboard cuisine en direct */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="relative"
+      >
+        <div className="border-[var(--brand-cream)]/15 bg-[var(--brand-cream)]/5 relative overflow-hidden rounded-2xl border p-4 backdrop-blur-md">
+          <div className="mb-3 flex items-center justify-between border-b border-[var(--brand-cream)]/10 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="relative flex size-2.5">
+                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--brand-saffron)] opacity-75" />
+                <span className="relative size-2.5 rounded-full bg-[var(--brand-saffron)]" />
+              </span>
+              <span className="text-[var(--brand-saffron)] text-xs font-medium tracking-wide uppercase">
+                Cuisine en direct
+              </span>
+            </div>
+            <span className="text-[var(--brand-cream)]/50 text-[10px]">
+              {String(shift + 1).padStart(2, "0")} / {KITCHEN_ORDERS.length}
             </span>
-            En direct dans nos restaurants
           </div>
-          <div className="relative h-12 overflow-hidden">
+
+          {/* Stack de cartes empilées */}
+          <div className="relative h-[230px]">
             <AnimatePresence mode="popLayout">
-              <motion.div
-                key={eventIdx}
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -30, opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
-                className="absolute inset-0 flex items-center gap-3"
-              >
-                <span
-                  className="text-[var(--brand-forest)] flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
-                  style={{ background: event.color }}
-                >
-                  {event.table.slice(0, 2)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    Table {event.table} <span className="text-[var(--brand-cream)]/70">{event.action}</span>
-                  </p>
-                  <p className="text-[var(--brand-cream)]/60 truncate text-xs">{event.item}</p>
-                </div>
-              </motion.div>
+              {visibleOrders.map((order, idx) => {
+                const style = STATUS_STYLES[order.status];
+                return (
+                  <motion.div
+                    key={`${order.id}-${shift}`}
+                    layout
+                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                    animate={{
+                      opacity: idx === 0 ? 1 : idx === 1 ? 0.6 : 0.3,
+                      y: idx * 72,
+                      scale: idx === 0 ? 1 : 1 - idx * 0.04,
+                    }}
+                    exit={{ opacity: 0, y: 230, scale: 0.9 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: [0.21, 0.47, 0.32, 0.98],
+                      delay: idx * 0.05,
+                    }}
+                    className="border-[var(--brand-cream)]/15 bg-[var(--brand-cream)]/10 absolute inset-x-0 rounded-lg border p-3 backdrop-blur"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div
+                        className="text-[var(--brand-forest)] flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                        style={{ background: order.color }}
+                      >
+                        {order.table.length > 3 ? order.table.slice(0, 1) : order.table}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">Table {order.table}</span>
+                          <span
+                            className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                            style={{ background: style.bg, color: style.color }}
+                          >
+                            {STATUS_LABEL[order.status]}
+                          </span>
+                        </div>
+                        <p className="text-[var(--brand-cream)]/70 truncate text-[11px]">
+                          {order.items}
+                        </p>
+                        <p className="text-[var(--brand-cream)]/50 mt-0.5 text-[10px]">
+                          {order.time}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Highlights */}
-      {highlights && highlights.length > 0 ? (
-        <dl className="text-[var(--brand-cream)]/80 relative grid grid-cols-3 gap-3 border-t border-[var(--brand-cream)]/15 pt-6">
-          {highlights.map((h) => (
-            <div key={h.label}>
-              <dt className="text-[var(--brand-saffron)] text-xs tracking-wide uppercase">
-                {h.label}
-              </dt>
-              <dd className="text-[var(--brand-cream)] text-2xl font-bold lg:text-3xl">
-                {h.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+      {/* Stats en bas */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="relative grid grid-cols-3 gap-3 border-t border-[var(--brand-cream)]/15 pt-6"
+      >
+        <div>
+          <div className="text-[var(--brand-saffron)] text-xs tracking-wide uppercase">
+            Commission
+          </div>
+          <div className="text-[var(--brand-cream)] text-2xl font-bold lg:text-3xl">0%</div>
+        </div>
+        <div>
+          <div className="text-[var(--brand-saffron)] text-xs tracking-wide uppercase">Setup</div>
+          <div className="text-[var(--brand-cream)] text-2xl font-bold lg:text-3xl">5 min</div>
+        </div>
+        <div>
+          <div className="text-[var(--brand-saffron)] text-xs tracking-wide uppercase">Langues</div>
+          <div className="text-[var(--brand-cream)] text-2xl font-bold lg:text-3xl">FR/EN</div>
+        </div>
+      </motion.div>
     </aside>
   );
 }

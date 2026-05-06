@@ -40,14 +40,7 @@ export default function SignUpPage() {
 
   return (
     <div className="grid min-h-svh md:grid-cols-2">
-      <AuthSidePanel
-        tagline="Premier QR code prêt à imprimer en moins d'une heure."
-        highlights={[
-          { value: "0%", label: "Commission" },
-          { value: "5 min", label: "Setup" },
-          { value: "FR/EN", label: "Bilingue" },
-        ]}
-      />
+      <AuthSidePanel tagline="Premier QR code prêt à imprimer en moins d'une heure." />
 
       <main className="bg-background relative flex flex-col items-center justify-center p-6 sm:p-10">
         <Link

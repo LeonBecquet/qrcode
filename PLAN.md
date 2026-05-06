@@ -266,15 +266,24 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - **Livrable** : owner peut configurer entièrement son resto. Settings UX propre avec sidebar.
 - **Note** : pour MVP, 1 créneau par jour. Services midi/soir distincts = V2.
 
-### **Phase 4 — Menu builder** (j13-19)
-- CRUD menus (multiple par resto, ex midi/soir)
-- CRUD catégories avec drag-to-reorder (`@dnd-kit`)
-- CRUD items : photo, nom, description, prix, allergènes (multi-select), dispo on/off
-- CRUD options + choices (cuisson, suppléments, taille)
-- Édition bilingue avec onglets FR/EN si la langue est activée pour le resto
-- **Live preview** : panneau latéral qui montre la vue client en temps réel
-- Templates pré-remplis (Bistrot français, Pizzeria, Asiatique) — optionnel, voir §6
-- **Livrable** : owner peut construire un menu complet et voir son rendu.
+### **Phase 4 — Menu builder** 🏗️ EN COURS (4A fait)
+
+**4A — Schema + CRUD basique** ✅ FAIT
+- ✅ Schema : `menus`, `menu_categories`, `menu_items`, `menu_item_options`, `menu_item_option_choices` + enum `option_type` + const `ALLERGENS` (14 UE)
+- ✅ Migration 0002 générée
+- ✅ `/dashboard/menu` : liste cards + create form
+- ✅ `/dashboard/menu/[menuId]` : éditeur menu (rename, publish toggle, delete) + sections par catégorie avec items
+- ✅ Catégories CRUD inline (add form, rename inline, delete avec confirm)
+- ✅ Items CRUD avec form complet : nom FR+EN, description FR+EN, prix € (input number step 0.10), 14 allergènes UE, dispo toggle, rupture quick-toggle
+- ✅ Bilingue conditionnel : si `restaurant.languages` contient "en", form expose les champs EN
+- ✅ Helpers d'ownership (ensureMenu/Category/ItemOwnership) pour empêcher le cross-tenant access
+- ✅ Header dashboard : ajout du lien "Menus"
+
+**4B — Photos + options + reorder** ⏳ À VENIR
+- Upload photo par item (R2)
+- CRUD options + choices (cuisson, suppléments)
+- Drag-and-drop reorder (`@dnd-kit`) catégories + items
+- Templates pré-remplis (Bistrot, Pizzeria...) — optionnel
 
 ### **Phase 5 — Tables & QR** (j20-22)
 - CRUD tables avec groupes

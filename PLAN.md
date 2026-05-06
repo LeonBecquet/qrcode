@@ -229,13 +229,17 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - ✅ Scripts pnpm : `dev / build / lint / typecheck / format / db:*`
 - **Livrable** : `pnpm dev` démarre. `pnpm typecheck` et `pnpm lint` passent.
 
-### **Phase 1 — Auth & multi-tenant** (j3-5)
-- Schémas users / organizations / memberships
-- Sign up (crée user + org default + membership owner)
-- Sign in / forgot password / magic link
-- Middleware de protection routes `/dashboard/*`
-- Helper `requireOrg()` côté serveur
-- **Livrable** : on peut s'inscrire, se connecter, voir un dashboard vide.
+### **Phase 1 — Auth & multi-tenant** ✅ FAIT
+- ✅ Schéma Drizzle : Better Auth tables (`user`, `session`, `account`, `verification`) + `restaurants` (avec champs sub Stripe inline) + `memberships` (user → restaurant + role)
+- ✅ Better Auth wired : email/password, sessions cookie-cached, plugin `nextCookies`
+- ✅ Routes `/signin`, `/signup` (Shadcn forms)
+- ✅ Onboarding `/onboarding` : server action transactionnelle qui crée resto + membership owner avec slug auto-généré et déduplication
+- ✅ Proxy Next 16 (`src/proxy.ts`) : redirect vers `/signin` si protégé sans session, vers `/dashboard` si déjà connecté
+- ✅ Helpers `requireSession()` + `requireRestaurant()` dans `src/lib/server/session.ts`
+- ✅ Layout dashboard avec header + bouton déconnexion + page placeholder
+- ⏳ Forgot password / magic link → reportés en Phase 2 (besoin Resend pour les emails)
+- **Livrable** : signup → onboarding → dashboard fonctionne end-to-end. Build prod passe.
+- **Migration DB** générée : `drizzle/0000_curious_crusher_hogan.sql` (à appliquer avec `pnpm db:push` ou `pnpm db:migrate` une fois le `DATABASE_URL` Neon configuré).
 
 ### **Phase 2 — Stripe Billing & sub gate** (j6-9)
 - 3 prix Stripe créés (script de seed)

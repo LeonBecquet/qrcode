@@ -98,7 +98,12 @@ export const restaurants = pgTable("restaurants", {
   logoUrl: text("logo_url"),
   coverUrl: text("cover_url"),
   theme: jsonb("theme")
-    .$type<{ primary?: string; accent?: string; font?: string }>()
+    .$type<{
+      primary?: string;
+      accent?: string;
+      font?: "modern" | "elegant" | "rustic" | "playful";
+      preset?: "elegant" | "bistrot" | "moderne" | "trattoria" | "minimal" | "vibrant" | "custom";
+    }>()
     .notNull()
     .default({}),
 

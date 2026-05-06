@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { MenuCategory, MenuItem, Restaurant } from "@/lib/db/schema";
+import { FONT_CSS_VAR } from "@/lib/menu-presets";
 
 const formatter = new Intl.NumberFormat("fr-FR", {
   style: "currency",
@@ -17,7 +18,10 @@ type Props = {
  * Sticky à droite du menu builder pour live preview.
  */
 export function PhonePreview({ restaurant, menuName, categories }: Props) {
-  const accent = restaurant.theme?.primary ?? "#EE8033";
+  const theme = restaurant.theme ?? {};
+  const primary = theme.primary ?? "#3D5C44";
+  const accent = theme.accent ?? theme.primary ?? "#EE8033";
+  const fontFamily = theme.font ? FONT_CSS_VAR[theme.font] : undefined;
   const visibleCategories = categories.filter((c) => c.items.length > 0);
 
   return (
@@ -38,7 +42,10 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
         {/* Notch */}
         <div className="bg-foreground absolute top-1.5 left-1/2 z-10 h-4 w-20 -translate-x-1/2 rounded-full" />
 
-        <div className="bg-[var(--brand-cream)] relative h-full w-full overflow-hidden rounded-[28px]">
+        <div
+          className="relative h-full w-full overflow-hidden rounded-[28px]"
+          style={{ background: "var(--brand-cream)", fontFamily }}
+        >
           {/* Header sticky resto */}
           <div className="bg-[var(--brand-cream)]/95 sticky top-0 z-10 flex items-center gap-2 border-b border-black/10 px-3 pt-9 pb-2.5 backdrop-blur">
             {restaurant.logoUrl ? (
@@ -55,7 +62,7 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
             ) : (
               <div
                 className="size-7 shrink-0 rounded-full"
-                style={{ background: accent }}
+                style={{ background: primary }}
               />
             )}
             <div className="min-w-0 flex-1">
@@ -64,7 +71,7 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
             </div>
             <span
               className="rounded-full px-1.5 py-0.5 text-[8px] font-medium text-white"
-              style={{ background: accent }}
+              style={{ background: primary }}
             >
               FR
             </span>
@@ -98,7 +105,12 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
             ) : (
               visibleCategories.map((cat) => (
                 <div key={cat.id} className="space-y-2">
-                  <h3 className="text-sm font-semibold text-black">{cat.nameFr}</h3>
+                  <h3
+                    className="text-sm font-semibold"
+                    style={{ color: primary }}
+                  >
+                    {cat.nameFr}
+                  </h3>
                   <ul className="space-y-1.5">
                     {cat.items.slice(0, 4).map((item) => (
                       <li
@@ -114,7 +126,10 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
                               {item.descriptionFr}
                             </p>
                           ) : null}
-                          <p className="mt-1 font-mono text-[9px] font-bold text-black">
+                          <p
+                            className="mt-1 text-[9px] font-bold"
+                            style={{ color: accent }}
+                          >
                             {formatter.format(item.priceCents / 100)}
                           </p>
                         </div>
@@ -132,7 +147,7 @@ export function PhonePreview({ restaurant, menuName, categories }: Props) {
                         ) : (
                           <div
                             className="size-12 shrink-0 rounded"
-                            style={{ background: `${accent}30` }}
+                            style={{ background: `${primary}25` }}
                           />
                         )}
                       </li>

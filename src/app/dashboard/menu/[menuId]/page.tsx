@@ -6,13 +6,16 @@ import { notFound } from "next/navigation";
 import { AddCategoryForm } from "./add-category-form";
 import { CategoryHeader } from "./category-actions";
 import { CategoryPresets } from "./category-presets";
+import { DesignButton } from "./design-drawer";
 import { ItemRowActions } from "./item-row-actions";
 import { MenuHeader } from "./menu-header";
 import { PhonePreview } from "./phone-preview";
+import { ScanButton } from "./scan-modal";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db/client";
-import { menuCategories, menuItems, menus } from "@/lib/db/schema";
+import { menuCategories, menuItems, menus, tables } from "@/lib/db/schema";
+import { buildTableUrl, generateQRDataURL } from "@/lib/qr";
 import { requireRestaurant } from "@/lib/server/session";
 
 const priceFormatter = new Intl.NumberFormat("fr-FR", {
@@ -79,6 +82,21 @@ export default async function MenuEditPage({ params }: { params: Promise<{ menuI
 
   const totalItems = previewCategories.reduce((sum, c) => sum + c.items.length, 0);
 
+  // Première table → URL + QR scannable pour le bouton "Scanner la carte"
+  const [firstTable] = await db
+    .select({ token: tables.token, label: tables.label })
+    .from(tables)
+    .where(eq(tables.restaurantId, ctx.restaurant.id))
+    .orderBy(asc(tables.sortOrder), asc(tables.createdAt))
+    .limit(1);
+
+  const scanUrl = firstTable
+    ? buildTableUrl(ctx.restaurant.slug, firstTable.token)
+    : null;
+  const qrDataUrl = scanUrl ? await generateQRDataURL(scanUrl) : null;
+
+  const theme = ctx.restaurant.theme ?? {};
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
       {/* === Éditeur (gauche) === */}
@@ -92,6 +110,24 @@ export default async function MenuEditPage({ params }: { params: Promise<{ menuI
         </Link>
 
         <MenuHeader menu={menu} />
+
+        {/* Toolbar : Scan + Design */}
+        <div className="flex flex-wrap items-center gap-2">
+          <ScanButton
+            qrDataUrl={qrDataUrl}
+            scanUrl={scanUrl}
+            restaurantName={ctx.restaurant.name}
+            tableLabel={firstTable?.label ?? null}
+          />
+          <DesignButton
+            initial={{
+              primary: theme.primary,
+              accent: theme.accent,
+              font: theme.font,
+              preset: theme.preset,
+            }}
+          />
+        </div>
 
         {/* Stats du menu */}
         <div className="grid gap-3 sm:grid-cols-3">

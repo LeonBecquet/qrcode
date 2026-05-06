@@ -1,11 +1,39 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Serif_Display, Geist, Inter, Lora, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { CookieBanner } from "@/components/cookie-banner";
 import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+
+// Polices pour les ambiances de carte côté client.
+// preload: false → téléchargées seulement quand utilisées.
+const menuModern = Inter({
+  subsets: ["latin"],
+  variable: "--font-menu-modern",
+  display: "swap",
+  preload: false,
+});
+const menuElegant = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-menu-elegant",
+  display: "swap",
+  preload: false,
+});
+const menuRustic = Lora({
+  subsets: ["latin"],
+  variable: "--font-menu-rustic",
+  display: "swap",
+  preload: false,
+});
+const menuPlayful = DM_Serif_Display({
+  subsets: ["latin"],
+  variable: "--font-menu-playful",
+  display: "swap",
+  weight: "400",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.APP_URL),
@@ -48,7 +76,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={cn("font-sans", geist.variable)}>
+    <html
+      lang="fr"
+      className={cn(
+        "font-sans",
+        geist.variable,
+        menuModern.variable,
+        menuElegant.variable,
+        menuRustic.variable,
+        menuPlayful.variable,
+      )}
+    >
       <body className="antialiased">
         {children}
         <CookieBanner />

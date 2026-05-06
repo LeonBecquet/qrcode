@@ -68,13 +68,21 @@ export default async function PublicMenuPage({
               className="scroll-mt-32 space-y-3"
             >
               <header>
-                <h2 className="text-2xl font-semibold tracking-tight">{catName}</h2>
+                <h2
+                  className="text-2xl font-semibold tracking-tight"
+                  style={{ color: "var(--client-primary, currentColor)" }}
+                >
+                  {catName}
+                </h2>
                 {catDesc ? (
                   <p className="text-muted-foreground text-sm">{catDesc}</p>
                 ) : null}
               </header>
 
-              <ul className="divide-y rounded-lg border">
+              <ul
+                className="divide-y rounded-lg border"
+                style={{ borderColor: "color-mix(in oklab, var(--client-primary, currentColor) 18%, transparent)" }}
+              >
                 {category.items.map((item) => {
                   const itemName = pickLocalizedText(item, locale);
                   const itemDesc = pickLocalizedDescription(item, locale);
@@ -98,7 +106,10 @@ export default async function PublicMenuPage({
                               {itemDesc}
                             </p>
                           ) : null}
-                          <p className="mt-2 font-mono text-sm font-semibold">
+                          <p
+                            className="mt-2 text-sm font-semibold"
+                            style={{ color: "var(--client-accent-2, var(--client-primary, currentColor))" }}
+                          >
                             {priceFormatter.format(item.priceCents / 100)}
                           </p>
                         </div>

@@ -362,15 +362,25 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - **Activation** : `UPDATE "user" SET "isPlatformAdmin" = true WHERE email = 'votre@email.fr';` — pas d'UI pour MVP, c'est interne
 - **Livrable** : on pilote notre MRR + voit qui paie quoi en un coup d'œil.
 
-### **Phase 10 — Marketing & conformité FR** (j40-46)
-- Landing `/` : value prop, screenshots, témoignages (placeholder), pricing, FAQ, CTA
-- Pages légales : mentions, CGU, CGV, politique de confidentialité, politique cookies
-- Bandeau cookies (Tarteaucitron ou maison)
-- SEO basique (meta, OG, sitemap.xml, robots.txt)
-- Email signup transactionnel (Resend)
-- Email résumé quotidien des commandes (Resend, cron Vercel)
-- Sentry intégré
-- **Livrable** : prêt à mettre en prod et démarcher des restos.
+### **Phase 10 — Marketing & conformité FR** ✅ FAIT (10A + 10B)
+
+**10A — Landing + légales + SEO** ✅
+- ✅ Route group `(marketing)` avec layout (header sticky + footer 4 colonnes)
+- ✅ Landing `/` : hero, comment ça marche (3 étapes), 6 features, pricing 3 cards, FAQ details/summary, CTA final
+- ✅ Pages légales `/legal/*` : `mentions-legales`, `cgu`, `cgv`, `confidentialite` (RGPD complet avec sous-traitants), `cookies` — placeholders à valider juridiquement avant prod
+- ✅ `CookieBanner` (useSyncExternalStore + localStorage `qr_cookie_consent`)
+- ✅ Metadata root layout : title template, OG, Twitter, robots index
+- ✅ `app/sitemap.ts` + `app/robots.ts` (disallow /r/, /api/, /dashboard/, /admin/, /onboarding)
+- ✅ Pages légales static-rendered (SEO friendly)
+
+**10B — Email transactionnel via Resend** ✅
+- ✅ Lib `src/lib/email.ts` lazy-init, no-op silencieux + log si pas configuré
+- ✅ Templates HTML inline : `welcomeEmail`, `subscriptionConfirmedEmail`
+- ✅ Hook `databaseHooks.user.create.after` dans Better Auth → email welcome au signup
+- ✅ Stripe webhook `checkout.session.completed` → email "abo activé" à l'owner du resto
+
+**⏳ Reportés post-MVP** : email résumé quotidien (cron Vercel), Sentry monitoring (à brancher au déploiement), screenshots produits dans la landing
+- **Livrable** : marketing en place, conformité RGPD couverte (pages à valider), emails transactionnels fonctionnels.
 
 ### **Phase 11 — Tests E2E & polish** (j47-50)
 - Playwright sur 3 flows critiques :

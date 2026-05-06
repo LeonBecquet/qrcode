@@ -35,6 +35,10 @@ const envSchema = z.object({
   PUSHER_CLUSTER: z.string().optional(),
   NEXT_PUBLIC_PUSHER_KEY: z.string().optional(),
   NEXT_PUBLIC_PUSHER_CLUSTER: z.string().optional(),
+
+  // Resend — email transactionnel (Phase 10). Optionnel : sans, les emails sont skip silencieusement.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

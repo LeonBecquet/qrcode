@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db/client";
 import * as schema from "@/lib/db/schema";
+import { sendEmail, welcomeEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 
 export const auth = betterAuth({
@@ -41,6 +42,16 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   trustedOrigins: [env.APP_URL],
   plugins: [nextCookies()],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (createdUser) => {
+          const tpl = welcomeEmail({ name: createdUser.name, appUrl: env.APP_URL });
+          await sendEmail({ ...tpl, to: createdUser.email });
+        },
+      },
+    },
+  },
 });
 
 export type Auth = typeof auth;

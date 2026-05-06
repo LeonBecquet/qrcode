@@ -1,9 +1,11 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { db } from "@/lib/db/client";
-import { restaurants, type SubStatus, type SubTier } from "@/lib/db/schema";
-import { getStripe, getWebhookSecret } from "@/lib/stripe";
+import { memberships, restaurants, type SubStatus, type SubTier, user as userTable } from "@/lib/db/schema";
+import { sendEmail, subscriptionConfirmedEmail } from "@/lib/email";
+import { env } from "@/lib/env";
+import { getStripe, getWebhookSecret, TIER_CONFIG } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -94,6 +96,26 @@ export async function POST(request: Request) {
             updatedAt: new Date(),
           })
           .where(eq(restaurants.id, restaurantId));
+      }
+
+      // Email de confirmation à l'owner
+      const ownerRows = await db
+        .select({ name: userTable.name, email: userTable.email })
+        .from(memberships)
+        .innerJoin(userTable, eq(memberships.userId, userTable.id))
+        .where(and(eq(memberships.restaurantId, restaurantId), eq(memberships.role, "owner")))
+        .limit(1);
+      const owner = ownerRows[0];
+      if (owner) {
+        const config = TIER_CONFIG[tier];
+        const tpl = subscriptionConfirmedEmail({
+          name: owner.name,
+          tierLabel: config.label,
+          amountEur: config.amountEur,
+          isLifetime: tier === "lifetime",
+          appUrl: env.APP_URL,
+        });
+        await sendEmail({ ...tpl, to: owner.email });
       }
       break;
     }

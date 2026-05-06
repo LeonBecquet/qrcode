@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,7 +50,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="bg-muted/30 flex min-h-svh items-center justify-center p-4">
+    <div className="bg-muted/30 flex min-h-svh flex-col items-center justify-center gap-6 p-4">
+      <Link href="/" className="transition-opacity hover:opacity-80">
+        <Logo variant="full" size={32} />
+      </Link>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Créer un compte</CardTitle>

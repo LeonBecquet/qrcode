@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import OnboardingForm from "./form";
+import { Logo } from "@/components/logo";
 import { db } from "@/lib/db/client";
 import { memberships } from "@/lib/db/schema";
 import { requireSession } from "@/lib/server/session";
@@ -19,7 +20,8 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="bg-muted/30 flex min-h-svh items-center justify-center p-4">
+    <div className="bg-muted/30 flex min-h-svh flex-col items-center justify-center gap-6 p-4">
+      <Logo variant="full" size={32} />
       <OnboardingForm />
     </div>
   );

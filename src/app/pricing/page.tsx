@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { PlanCard } from "./plan-card";
+import { Logo } from "@/components/logo";
 import { requireRestaurant } from "@/lib/server/session";
 
 const ACTIVE_STATUSES = ["active", "trialing"] as const;
@@ -23,6 +24,9 @@ export default async function PricingPage({
   return (
     <main className="min-h-svh px-4 py-16">
       <div className="mx-auto max-w-5xl space-y-10">
+        <div className="flex justify-center">
+          <Logo variant="full" size={32} />
+        </div>
         <div className="space-y-3 text-center">
           <h1 className="text-4xl font-bold tracking-tight">Choisissez votre formule</h1>
           <p className="text-muted-foreground">

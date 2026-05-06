@@ -48,22 +48,25 @@ export async function sendEmail(args: SendArgs): Promise<void> {
 const baseStyle = `
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.6;
-  color: #1a1a1a;
+  color: #1A1A18;
+  background: #FAF7F2;
   max-width: 560px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 32px 24px;
 `;
 const buttonStyle = `
   display: inline-block;
-  background: #000;
-  color: #fff;
+  background: #1A1A18;
+  color: #FAF7F2;
   padding: 12px 24px;
   text-decoration: none;
   border-radius: 6px;
   font-weight: 500;
   margin: 16px 0;
 `;
-const mutedStyle = `color: #6b7280; font-size: 14px;`;
+const mutedStyle = `color: #5C5750; font-size: 14px;`;
+const accentBarStyle = `width: 40px; height: 3px; background: #D4633D; border-radius: 2px; margin-bottom: 16px;`;
+const brandStyle = `font-size: 12px; color: #7C766F; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;`;
 
 export function welcomeEmail(args: { name: string; appUrl: string }): SendArgs {
   return {
@@ -72,9 +75,11 @@ export function welcomeEmail(args: { name: string; appUrl: string }): SendArgs {
     text: `Bonjour ${args.name},\n\nMerci de vous être inscrit sur QR Restaurant. Pour démarrer, configurez votre restaurant et votre menu : ${args.appUrl}/dashboard\n\nL'équipe QR Restaurant`,
     html: `
       <div style="${baseStyle}">
-        <h1 style="margin: 0 0 16px 0; font-size: 24px;">Bienvenue ${args.name} !</h1>
-        <p>Merci d'avoir créé un compte sur <strong>QR Restaurant</strong>.</p>
-        <p>Pour démarrer :</p>
+        <p style="${brandStyle}">QR Restaurant</p>
+        <div style="${accentBarStyle}"></div>
+        <h1 style="margin: 0 0 16px 0; font-size: 28px; letter-spacing: -0.02em;">Bienvenue ${args.name} 👋</h1>
+        <p>Merci d'avoir créé un compte. On est ravis de vous avoir.</p>
+        <p>Pour démarrer en moins d'une heure :</p>
         <ol>
           <li>Choisissez votre formule (mensuel, annuel ou à vie)</li>
           <li>Configurez votre restaurant : nom, logo, horaires</li>
@@ -87,7 +92,7 @@ export function welcomeEmail(args: { name: string; appUrl: string }): SendArgs {
         <p style="${mutedStyle}">
           Une question ? Répondez à cet email, on vous lit.
         </p>
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <hr style="border: none; border-top: 1px solid #E0D8CC; margin: 24px 0;">
         <p style="${mutedStyle}">
           QR Restaurant · Commandes par QR code pour restaurants français
         </p>
@@ -115,7 +120,9 @@ export function subscriptionConfirmedEmail(args: {
     text: `Bonjour ${args.name},\n\nVotre abonnement ${args.tierLabel} (${args.amountEur} € ${cadence}) est maintenant actif.\n\nAccédez à votre tableau de bord : ${args.appUrl}/dashboard\n\nL'équipe QR Restaurant`,
     html: `
       <div style="${baseStyle}">
-        <h1 style="margin: 0 0 16px 0; font-size: 24px;">Abonnement activé ✓</h1>
+        <p style="${brandStyle}">QR Restaurant</p>
+        <div style="${accentBarStyle}"></div>
+        <h1 style="margin: 0 0 16px 0; font-size: 28px; letter-spacing: -0.02em;">Abonnement activé ✓</h1>
         <p>Bonjour ${args.name},</p>
         <p>
           Votre abonnement <strong>${args.tierLabel}</strong> (${args.amountEur} € ${cadence}) est
@@ -132,7 +139,7 @@ export function subscriptionConfirmedEmail(args: {
         <p style="${mutedStyle}">
           Une facture vous sera envoyée par Stripe.
         </p>
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <hr style="border: none; border-top: 1px solid #E0D8CC; margin: 24px 0;">
         <p style="${mutedStyle}">
           QR Restaurant · Commandes par QR code pour restaurants français
         </p>

@@ -20,48 +20,60 @@ type Props = {
   cards: QrCard[];
 };
 
+const COLORS = {
+  bg: "#FAF7F2",
+  ink: "#1A1A18",
+  muted: "#7C766F",
+  border: "#E0D8CC",
+  accent: "#D4633D",
+};
+
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 24,
+    paddingTop: 28,
     paddingBottom: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     fontSize: 10,
     fontFamily: "Helvetica",
+    backgroundColor: COLORS.bg,
   },
   header: {
     fontSize: 9,
-    color: "#666666",
+    color: COLORS.muted,
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: 14,
   },
   card: {
     width: "48.5%",
-    border: "1pt solid #DDDDDD",
-    borderRadius: 6,
+    backgroundColor: "#FFFFFF",
+    border: `1pt solid ${COLORS.border}`,
+    borderRadius: 8,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 220,
+    minHeight: 230,
   },
   brand: {
     fontSize: 8,
-    color: "#999999",
+    color: COLORS.muted,
     marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   label: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#000000",
+    color: COLORS.ink,
     marginBottom: 4,
   },
   groupName: {
     fontSize: 9,
-    color: "#666666",
+    color: COLORS.muted,
     marginBottom: 12,
   },
   qrImage: {
@@ -69,15 +81,27 @@ const styles = StyleSheet.create({
     height: 150,
     marginBottom: 8,
   },
+  accentBar: {
+    width: 40,
+    height: 3,
+    backgroundColor: COLORS.accent,
+    borderRadius: 2,
+    marginBottom: 10,
+  },
   scanText: {
     fontSize: 9,
-    color: "#000000",
+    color: COLORS.ink,
     marginTop: 4,
+    fontWeight: "bold",
   },
-  url: {
-    fontSize: 7,
-    color: "#999999",
-    marginTop: 2,
+  footer: {
+    position: "absolute",
+    bottom: 12,
+    left: 28,
+    right: 28,
+    fontSize: 8,
+    color: COLORS.muted,
+    textAlign: "center",
   },
 });
 
@@ -96,12 +120,14 @@ function QrPdfDocument({ restaurantName, cards }: Props) {
               {card.table.groupName ? (
                 <Text style={styles.groupName}>{card.table.groupName}</Text>
               ) : null}
+              <View style={styles.accentBar} />
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image src={card.qrDataUrl} style={styles.qrImage} />
               <Text style={styles.scanText}>Scannez pour commander</Text>
             </View>
           ))}
         </View>
+        <Text style={styles.footer}>Propulsé par QR Restaurant</Text>
       </Page>
     </Document>
   );

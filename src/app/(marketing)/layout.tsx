@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
@@ -6,8 +7,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="bg-background min-h-svh">
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-30 border-b backdrop-blur">
         <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" className="font-semibold tracking-tight">
-            QR Restaurant
+          <Link href="/" className="transition-opacity hover:opacity-80">
+            <Logo variant="full" size={28} />
           </Link>
           <nav className="flex items-center gap-3 text-sm">
             <Link href="/#fonctionnalites" className="text-muted-foreground hidden hover:text-foreground sm:inline">
@@ -31,8 +32,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <main>{children}</main>
       <footer className="bg-muted/30 border-t">
         <div className="container mx-auto grid gap-6 px-4 py-12 md:grid-cols-4">
-          <div className="space-y-2">
-            <p className="font-semibold">QR Restaurant</p>
+          <div className="space-y-3">
+            <Logo variant="full" size={28} />
             <p className="text-muted-foreground text-sm">
               Commandes par QR code pour restaurants français.
             </p>

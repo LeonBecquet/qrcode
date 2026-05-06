@@ -1,14 +1,7 @@
 import { asc, count, eq } from "drizzle-orm";
-import {
-  ArrowRight,
-  BookOpen,
-  ChevronRight,
-  Sparkles,
-  UtensilsCrossed,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { ArrowRight, BookOpen, Sparkles, UtensilsCrossed } from "lucide-react";
 import { CreateMenuForm } from "./create-menu-form";
+import { MenuShowcase } from "./menu-showcase";
 import {
   Card,
   CardContent,
@@ -17,29 +10,40 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/lib/db/client";
-import { menuCategories, menuItems, menus } from "@/lib/db/schema";
+import { menuCategories, menuItems, menus, tables } from "@/lib/db/schema";
+import { buildTableUrl } from "@/lib/qr";
 import { requireRestaurant } from "@/lib/server/session";
-
-const eurFormatter = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
-const dateFmt = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
 
 export default async function MenusPage() {
   const ctx = await requireRestaurant();
+
   const list = await db
     .select()
     .from(menus)
     .where(eq(menus.restaurantId, ctx.restaurant.id))
     .orderBy(menus.sortOrder, menus.createdAt);
 
-  // Pour chaque menu : count items + 3 premiers items en preview
+  // Première table active : sert à construire l'URL d'aperçu client.
+  const [firstTable] = await db
+    .select({ token: tables.token })
+    .from(tables)
+    .where(eq(tables.restaurantId, ctx.restaurant.id))
+    .orderBy(asc(tables.sortOrder), asc(tables.createdAt))
+    .limit(1);
+
+  const publicUrl = firstTable
+    ? buildTableUrl(ctx.restaurant.slug, firstTable.token)
+    : null;
+
+  // Pour chaque menu : count catégories + items + 4 premiers items en preview
   const menuStats = await Promise.all(
     list.map(async (menu) => {
-      const [{ c: total } = { c: 0 }] = await db
+      const [{ c: catCount } = { c: 0 }] = await db
+        .select({ c: count() })
+        .from(menuCategories)
+        .where(eq(menuCategories.menuId, menu.id));
+
+      const [{ c: itemCount } = { c: 0 }] = await db
         .select({ c: count() })
         .from(menuItems)
         .innerJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
@@ -56,9 +60,9 @@ export default async function MenusPage() {
         .innerJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
         .where(eq(menuCategories.menuId, menu.id))
         .orderBy(asc(menuCategories.sortOrder), asc(menuItems.sortOrder))
-        .limit(3);
+        .limit(4);
 
-      return { menuId: menu.id, total, previews };
+      return { menuId: menu.id, catCount, itemCount, previews };
     }),
   );
   const statsByMenu = new Map(menuStats.map((s) => [s.menuId, s]));
@@ -109,98 +113,19 @@ export default async function MenusPage() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-5">
             {list.map((menu) => {
               const stats = statsByMenu.get(menu.id);
               return (
-                <Link key={menu.id} href={`/dashboard/menu/${menu.id}`} className="group block">
-                  <Card className="group-hover:border-[var(--brand-orange)]/50 group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden h-full flex flex-col">
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--brand-forest)] via-[var(--brand-orange)] to-[var(--brand-saffron)] opacity-0 transition-opacity group-hover:opacity-100"
-                    />
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] flex size-10 shrink-0 items-center justify-center rounded-lg">
-                            <UtensilsCrossed className="size-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <CardTitle className="text-base truncate">{menu.name}</CardTitle>
-                            <p className="text-muted-foreground text-xs">
-                              Modifié le {dateFmt.format(menu.updatedAt)}
-                            </p>
-                          </div>
-                        </div>
-                        {menu.isPublished ? (
-                          <span className="bg-[var(--brand-forest)]/15 text-[var(--brand-forest)] shrink-0 rounded-full px-2 py-0.5 text-xs font-medium">
-                            Publié
-                          </span>
-                        ) : (
-                          <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs">
-                            Brouillon
-                          </span>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="flex flex-1 flex-col gap-3">
-                      {stats && stats.previews.length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {stats.previews.map((item) => (
-                            <li
-                              key={item.id}
-                              className="bg-muted/30 group-hover:bg-muted/50 flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
-                            >
-                              {item.imageUrl ? (
-                                <div className="relative size-8 shrink-0 overflow-hidden rounded">
-                                  <Image
-                                    src={item.imageUrl}
-                                    alt=""
-                                    fill
-                                    className="object-cover"
-                                    sizes="32px"
-                                    unoptimized
-                                  />
-                                </div>
-                              ) : (
-                                <div className="bg-[var(--brand-saffron)]/40 size-8 shrink-0 rounded" />
-                              )}
-                              <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                                {item.nameFr}
-                              </span>
-                              <span className="text-muted-foreground font-mono text-xs">
-                                {eurFormatter.format(item.priceCents / 100)}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="bg-gradient-to-br from-[var(--brand-saffron)]/15 to-[var(--brand-orange)]/10 border-[var(--brand-orange)]/20 rounded-lg border-2 border-dashed p-4 text-center">
-                          <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] mx-auto mb-2 flex size-10 items-center justify-center rounded-full">
-                            <UtensilsCrossed className="size-5" />
-                          </div>
-                          <p className="text-foreground text-xs font-medium">
-                            Carte vide
-                          </p>
-                          <p className="text-muted-foreground mt-0.5 text-[10px]">
-                            Ajoutez vos premières catégories et plats
-                          </p>
-                        </div>
-                      )}
-                      <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-3 text-xs">
-                        <span>
-                          {stats?.total ?? 0} plat{(stats?.total ?? 0) > 1 ? "s" : ""}
-                          {stats && stats.total > stats.previews.length
-                            ? ` · +${stats.total - stats.previews.length} de plus`
-                            : ""}
-                        </span>
-                        <span className="inline-flex items-center gap-1 font-medium transition-all group-hover:translate-x-1 group-hover:text-[var(--brand-orange)]">
-                          Modifier <ChevronRight className="size-3.5" />
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <MenuShowcase
+                  key={menu.id}
+                  menu={menu}
+                  totalCategories={stats?.catCount ?? 0}
+                  totalItems={stats?.itemCount ?? 0}
+                  previews={stats?.previews ?? []}
+                  restaurant={ctx.restaurant}
+                  publicUrl={publicUrl}
+                />
               );
             })}
           </div>

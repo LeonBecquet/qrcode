@@ -286,13 +286,16 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - ⏳ Drag-and-drop reorder (`@dnd-kit`) → reporté (input `sort_order` numérique en attendant si vraiment besoin)
 - ⏳ Templates pré-remplis (Bistrot, Pizzeria...) → reporté hors MVP
 
-### **Phase 5 — Tables & QR** (j20-22)
-- CRUD tables avec groupes
-- Génération token unique
-- Bouton "Régénérer token" (invalide l'ancien QR)
-- Génération PDF imprimable A4 : 4 ou 8 QR par page, logo resto, label table, branding minimaliste
-- Téléchargement bulk + par table individuelle
-- **Livrable** : owner imprime son PDF, plastifie, colle sur les tables.
+### **Phase 5 — Tables & QR** ✅ FAIT
+- ✅ Schema : table `tables` (label, groupName optionnel, token unique 16 chars hex, isActive flag) — migration 0003
+- ✅ Lib `src/lib/qr.ts` : `generateTableToken` (crypto.randomBytes), `buildTableUrl`, `generateQRDataURL` (PNG 512×512, error correction M)
+- ✅ Lib `src/lib/pdf.tsx` : `buildQrPdf` avec `@react-pdf/renderer` — A4, 4 cards par page (2×2), label en gros + groupe + QR + "Scannez pour commander"
+- ✅ Page `/dashboard/tables` : CRUD complet, ajout single ou en lot (T1...T20 avec préfixe + start + count + group), groupage par `groupName`
+- ✅ Actions : create, bulk create, update (rename + group), delete, **regenerate token** (invalide l'ancien QR), toggle active
+- ✅ Endpoint `/api/qr-pdf` (Node runtime) : tous les QR du resto, ou un seul via `?tableId=X`. Returns PDF download.
+- ✅ Lien direct par table : "PDF" pour télécharger un QR seul, lien URL scannée pour preview
+- ✅ Lien "Tables" dans header dashboard
+- **Livrable** : `pnpm dev` → /dashboard/tables → ajouter 10 tables → "Télécharger tous les QR" → PDF prêt à imprimer/plastifier.
 
 ### **Phase 6 — App client (PWA)** (j23-29)
 - Route publique `/r/[slug]/t/[token]` : résout resto + table, charge le menu actif (selon heure/jour)

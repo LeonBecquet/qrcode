@@ -162,6 +162,20 @@ export const memberships = pgTable(
   (t) => [unique("memberships_user_restaurant_uniq").on(t.userId, t.restaurantId)],
 );
 
+export const tables = pgTable("tables", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  restaurantId: uuid("restaurant_id")
+    .notNull()
+    .references(() => restaurants.id, { onDelete: "cascade" }),
+  label: varchar("label", { length: 32 }).notNull(),
+  groupName: varchar("group_name", { length: 64 }),
+  token: varchar("token", { length: 32 }).notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // =====================================================
 // Menu builder
 // =====================================================
@@ -270,6 +284,14 @@ export const restaurantRelations = relations(restaurants, ({ many }) => ({
   memberships: many(memberships),
   hours: many(restaurantHours),
   menus: many(menus),
+  tables: many(tables),
+}));
+
+export const tableRelations = relations(tables, ({ one }) => ({
+  restaurant: one(restaurants, {
+    fields: [tables.restaurantId],
+    references: [restaurants.id],
+  }),
 }));
 
 export const menuRelations = relations(menus, ({ one, many }) => ({
@@ -351,6 +373,7 @@ export type User = typeof user.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type Membership = typeof memberships.$inferSelect;
 export type RestaurantHours = typeof restaurantHours.$inferSelect;
+export type Table = typeof tables.$inferSelect;
 export type Menu = typeof menus.$inferSelect;
 export type MenuCategory = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;

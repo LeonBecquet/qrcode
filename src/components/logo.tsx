@@ -26,32 +26,33 @@ export function Logo({ className, size = 32, variant = "mark" }: Props) {
       aria-label="QR Restaurant"
       className="shrink-0"
     >
-      <rect width="100" height="100" rx="22" fill="currentColor" />
+      {/* Carré vert forêt */}
+      <rect width="100" height="100" rx="22" fill="#1F4F1F" />
 
-      {/* Locators QR — coin haut-gauche */}
-      <rect x="14" y="14" width="22" height="22" rx="3" fill="var(--logo-bg, #FAF7F2)" />
-      <rect x="20" y="20" width="10" height="10" rx="1.5" fill="currentColor" />
+      {/* Locators QR — coin haut-gauche (crème) */}
+      <rect x="14" y="14" width="22" height="22" rx="3" fill="#FFF6E0" />
+      <rect x="20" y="20" width="10" height="10" rx="1.5" fill="#1F4F1F" />
 
-      {/* Locator coin haut-droit */}
-      <rect x="64" y="14" width="22" height="22" rx="3" fill="var(--logo-bg, #FAF7F2)" />
-      <rect x="70" y="20" width="10" height="10" rx="1.5" fill="currentColor" />
+      {/* Locator coin haut-droit (safran pour pep) */}
+      <rect x="64" y="14" width="22" height="22" rx="3" fill="#F5C342" />
+      <rect x="70" y="20" width="10" height="10" rx="1.5" fill="#1F4F1F" />
 
-      {/* Locator coin bas-gauche */}
-      <rect x="14" y="64" width="22" height="22" rx="3" fill="var(--logo-bg, #FAF7F2)" />
-      <rect x="20" y="70" width="10" height="10" rx="1.5" fill="currentColor" />
+      {/* Locator coin bas-gauche (crème) */}
+      <rect x="14" y="64" width="22" height="22" rx="3" fill="#FFF6E0" />
+      <rect x="20" y="70" width="10" height="10" rx="1.5" fill="#1F4F1F" />
 
-      {/* Notre signature : dot terracotta à la place du 4ème locator */}
-      <circle cx="75" cy="75" r="11" fill="#D4633D" />
+      {/* Notre signature : dot orange brûlé à la place du 4ème locator */}
+      <circle cx="75" cy="75" r="11" fill="#EE8033" />
 
-      {/* Quelques data cells au centre pour la texture */}
-      <rect x="46" y="46" width="8" height="8" rx="1" fill="var(--logo-bg, #FAF7F2)" />
-      <rect x="58" y="54" width="8" height="8" rx="1" fill="var(--logo-bg, #FAF7F2)" />
-      <rect x="46" y="58" width="6" height="6" rx="1" fill="var(--logo-bg, #FAF7F2)" />
+      {/* Data cells au centre — petit clin d'œil, comme une assiette stylisée */}
+      <rect x="46" y="46" width="8" height="8" rx="1.5" fill="#FFF6E0" />
+      <rect x="58" y="54" width="8" height="8" rx="1.5" fill="#D04A33" />
+      <rect x="46" y="58" width="6" height="6" rx="1.5" fill="#F5C342" />
     </svg>
   );
 
   if (variant === "mark") {
-    return <span className={cn("inline-flex text-foreground", className)}>{mark}</span>;
+    return <span className={cn("inline-flex", className)}>{mark}</span>;
   }
 
   return (

@@ -48,40 +48,57 @@
 }
 
 :root {
-    /* DA "Bistrot moderne" : crème + noir doux + terracotta accent */
-    --background: oklch(0.973 0.0045 75); /* #FAF7F2 crème */
-    --foreground: oklch(0.16 0.005 60); /* #1A1A18 noir doux */
-    --card: oklch(0.99 0.003 80); /* presque blanc, légèrement chaud */
-    --card-foreground: oklch(0.16 0.005 60);
-    --popover: oklch(0.99 0.003 80);
-    --popover-foreground: oklch(0.16 0.005 60);
-    --primary: oklch(0.18 0.005 60); /* noir profond pour CTAs */
-    --primary-foreground: oklch(0.973 0.0045 75);
-    --secondary: oklch(0.93 0.012 75); /* sable clair */
-    --secondary-foreground: oklch(0.18 0.005 60);
-    --muted: oklch(0.93 0.012 75);
-    --muted-foreground: oklch(0.45 0.012 70); /* taupe */
-    --accent: oklch(0.625 0.143 38); /* #D4633D terracotta */
-    --accent-foreground: oklch(0.99 0.003 80);
-    --destructive: oklch(0.55 0.18 28);
-    --border: oklch(0.88 0.015 75); /* sable foncé */
-    --input: oklch(0.88 0.015 75);
-    --ring: oklch(0.625 0.143 38); /* focus en terracotta */
-    --chart-1: oklch(0.625 0.143 38); /* terracotta */
-    --chart-2: oklch(0.45 0.012 70); /* taupe */
-    --chart-3: oklch(0.62 0.08 60); /* brun chaud */
-    --chart-4: oklch(0.55 0.1 90); /* moutarde */
-    --chart-5: oklch(0.35 0.025 60); /* anthracite */
-    --radius: 0.5rem;
-    --sidebar: oklch(0.96 0.008 75);
-    --sidebar-foreground: oklch(0.16 0.005 60);
-    --sidebar-primary: oklch(0.18 0.005 60);
-    --sidebar-primary-foreground: oklch(0.973 0.0045 75);
-    --sidebar-accent: oklch(0.93 0.012 75);
-    --sidebar-accent-foreground: oklch(0.18 0.005 60);
-    --sidebar-border: oklch(0.88 0.015 75);
-    --sidebar-ring: oklch(0.625 0.143 38);
-    --logo-bg: #FAF7F2;
+    /* DA "Méditerranée moderne" : crème safran + vert forêt + orange brûlé + tomate + safran */
+    --background: oklch(0.975 0.022 92); /* #FFF6E0 crème safran chaud */
+    --foreground: oklch(0.21 0.03 60); /* #2A1F0E brun très foncé chaud */
+    --card: oklch(0.995 0.01 90); /* blanc chaud */
+    --card-foreground: oklch(0.21 0.03 60);
+    --popover: oklch(0.995 0.01 90);
+    --popover-foreground: oklch(0.21 0.03 60);
+    --primary: oklch(0.34 0.08 145); /* #2D5A2D vert forêt profond */
+    --primary-foreground: oklch(0.975 0.022 92);
+    --secondary: oklch(0.92 0.035 88); /* sable doré clair */
+    --secondary-foreground: oklch(0.34 0.08 145);
+    --muted: oklch(0.92 0.035 88);
+    --muted-foreground: oklch(0.5 0.045 70); /* taupe doré */
+    --accent: oklch(0.7 0.165 50); /* #EE8033 orange brûlé chaleureux */
+    --accent-foreground: oklch(0.995 0.01 90);
+    --destructive: oklch(0.58 0.2 25); /* tomate */
+    --border: oklch(0.86 0.038 85); /* sable */
+    --input: oklch(0.86 0.038 85);
+    --ring: oklch(0.7 0.165 50);
+    /* Palette de marque (utilisable directement via classes utilitaires) */
+    --brand-forest: oklch(0.34 0.08 145); /* vert forêt */
+    --brand-forest-light: oklch(0.55 0.1 145); /* vert sauge */
+    --brand-orange: oklch(0.7 0.165 50); /* orange brûlé */
+    --brand-saffron: oklch(0.85 0.15 88); /* #F5C342 jaune safran */
+    --brand-tomato: oklch(0.62 0.2 28); /* #D04A33 rouge tomate */
+    --brand-cream: oklch(0.975 0.022 92);
+    --chart-1: oklch(0.7 0.165 50); /* orange */
+    --chart-2: oklch(0.34 0.08 145); /* vert */
+    --chart-3: oklch(0.85 0.15 88); /* safran */
+    --chart-4: oklch(0.62 0.2 28); /* tomate */
+    --chart-5: oklch(0.5 0.045 70); /* taupe */
+    --radius: 0.75rem;
+    --sidebar: oklch(0.95 0.03 90);
+    --sidebar-foreground: oklch(0.21 0.03 60);
+    --sidebar-primary: oklch(0.34 0.08 145);
+    --sidebar-primary-foreground: oklch(0.975 0.022 92);
+    --sidebar-accent: oklch(0.92 0.035 88);
+    --sidebar-accent-foreground: oklch(0.34 0.08 145);
+    --sidebar-border: oklch(0.86 0.038 85);
+    --sidebar-ring: oklch(0.7 0.165 50);
+    --logo-bg: #FFF6E0;
+}
+
+/* Classes utilitaires pour utiliser les couleurs de marque */
+@theme inline {
+    --color-brand-forest: var(--brand-forest);
+    --color-brand-forest-light: var(--brand-forest-light);
+    --color-brand-orange: var(--brand-orange);
+    --color-brand-saffron: var(--brand-saffron);
+    --color-brand-tomato: var(--brand-tomato);
+    --color-brand-cream: var(--brand-cream);
 }
 
 .dark {

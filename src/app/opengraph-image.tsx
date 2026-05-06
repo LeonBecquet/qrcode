@@ -12,25 +12,52 @@ export default function OpengraphImage() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#FAF7F2",
+          background: "#FFF6E0",
           display: "flex",
           flexDirection: "column",
           padding: 80,
           position: "relative",
         }}
       >
-        {/* Logo mark en haut-gauche */}
+        {/* Decorative gradient blobs */}
+        <div
+          style={{
+            position: "absolute",
+            top: -200,
+            right: -200,
+            width: 500,
+            height: 500,
+            borderRadius: "50%",
+            background: "rgba(238, 128, 51, 0.25)",
+            filter: "blur(80px)",
+            display: "flex",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -200,
+            left: -200,
+            width: 500,
+            height: 500,
+            borderRadius: "50%",
+            background: "rgba(31, 79, 31, 0.25)",
+            filter: "blur(80px)",
+            display: "flex",
+          }}
+        />
+
+        {/* Logo mark */}
         <div
           style={{
             width: 88,
             height: 88,
-            background: "#1A1A18",
+            background: "#1F4F1F",
             borderRadius: 20,
             position: "relative",
             display: "flex",
           }}
         >
-          {/* Locator top-left */}
           <div
             style={{
               position: "absolute",
@@ -38,12 +65,11 @@ export default function OpengraphImage() {
               left: 13,
               width: 20,
               height: 20,
-              background: "#FAF7F2",
+              background: "#FFF6E0",
               borderRadius: 3,
               display: "flex",
             }}
           />
-          {/* Locator top-right */}
           <div
             style={{
               position: "absolute",
@@ -51,12 +77,11 @@ export default function OpengraphImage() {
               right: 13,
               width: 20,
               height: 20,
-              background: "#FAF7F2",
+              background: "#F5C342",
               borderRadius: 3,
               display: "flex",
             }}
           />
-          {/* Locator bottom-left */}
           <div
             style={{
               position: "absolute",
@@ -64,12 +89,11 @@ export default function OpengraphImage() {
               left: 13,
               width: 20,
               height: 20,
-              background: "#FAF7F2",
+              background: "#FFF6E0",
               borderRadius: 3,
               display: "flex",
             }}
           />
-          {/* Dot terracotta */}
           <div
             style={{
               position: "absolute",
@@ -77,31 +101,30 @@ export default function OpengraphImage() {
               right: 14,
               width: 18,
               height: 18,
-              background: "#D4633D",
+              background: "#EE8033",
               borderRadius: "50%",
               display: "flex",
             }}
           />
         </div>
 
-        {/* Spacer */}
         <div style={{ flex: 1, display: "flex" }} />
 
         {/* Tagline */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div
             style={{
-              fontSize: 84,
+              fontSize: 88,
               fontWeight: 700,
-              color: "#1A1A18",
+              color: "#2A1F0E",
               lineHeight: 1.05,
-              letterSpacing: "-0.02em",
+              letterSpacing: "-0.03em",
               display: "flex",
               flexDirection: "column",
             }}
           >
             <span>Vos clients commandent</span>
-            <span style={{ color: "#7C766F" }}>depuis leur table.</span>
+            <span style={{ color: "#1F4F1F" }}>depuis leur table.</span>
           </div>
           <div
             style={{
@@ -109,9 +132,24 @@ export default function OpengraphImage() {
               color: "#5C5750",
               marginTop: 16,
               display: "flex",
+              alignItems: "center",
+              gap: 12,
             }}
           >
-            QR Restaurant — pour restaurants français
+            <span
+              style={{
+                background: "#EE8033",
+                color: "white",
+                padding: "6px 14px",
+                borderRadius: 999,
+                fontSize: 22,
+                fontWeight: 600,
+                display: "flex",
+              }}
+            >
+              0% commission
+            </span>
+            <span style={{ display: "flex" }}>QR Restaurant — pour restaurants français</span>
           </div>
         </div>
 
@@ -123,7 +161,7 @@ export default function OpengraphImage() {
             left: 0,
             right: 0,
             height: 8,
-            background: "#D4633D",
+            background: "linear-gradient(90deg, #1F4F1F 0%, #EE8033 50%, #F5C342 100%)",
             display: "flex",
           }}
         />

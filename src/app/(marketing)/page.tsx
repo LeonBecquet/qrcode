@@ -1,14 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { TIER_CONFIG } from "@/lib/stripe";
 
 export const metadata: Metadata = {
@@ -23,46 +15,64 @@ export const metadata: Metadata = {
   },
 };
 
+const STATS = [
+  { value: "0%", label: "Commission sur les commandes" },
+  { value: "< 5 min", label: "Pour configurer votre 1er menu" },
+  { value: "FR + EN", label: "Bilingue dès le départ" },
+];
+
 const STEPS = [
   {
     num: "1",
-    title: "Construisez votre menu",
-    body: "Photos, allergènes, options (cuisson, suppléments). En français et anglais si vous le souhaitez.",
+    emoji: "📝",
+    title: "Construisez votre carte",
+    body: "Photos, allergènes, options de cuisson, suppléments. En français et anglais.",
+    bg: "bg-[var(--brand-saffron)]/20",
   },
   {
     num: "2",
+    emoji: "🖨️",
     title: "Imprimez vos QR codes",
-    body: "Un PDF prêt à imprimer pour toutes vos tables. Vous plastifiez et collez.",
+    body: "Un PDF prêt à plastifier pour toutes vos tables. Beaux à voir, faciles à scanner.",
+    bg: "bg-[var(--brand-orange)]/20",
   },
   {
     num: "3",
+    emoji: "🍽️",
     title: "Recevez les commandes",
-    body: "Le client scanne, commande, paie au comptoir comme d'habitude. Vous voyez tout en cuisine en temps réel.",
+    body: "Le client scanne, commande, paie en fin de repas comme d'habitude. Cuisine en direct.",
+    bg: "bg-[var(--brand-forest)]/15",
   },
 ];
 
 const FEATURES = [
   {
+    emoji: "📱",
     title: "Sans application",
-    body: "Vos clients scannent et commandent directement depuis leur navigateur. Aucune installation.",
+    body: "Vos clients scannent et commandent depuis leur navigateur. Aucune installation.",
   },
   {
+    emoji: "🌍",
     title: "Bilingue FR + EN",
-    body: "Activez l'anglais en un clic. Idéal pour les zones touristiques.",
+    body: "Activez l'anglais en un clic. Les touristes adorent.",
   },
   {
+    emoji: "⚠️",
     title: "Allergènes UE",
-    body: "Les 14 allergènes obligatoires affichés clairement. Conformité française.",
+    body: "Les 14 allergènes obligatoires affichés clairement. Conformité française intégrée.",
   },
   {
+    emoji: "⚡",
     title: "Cuisine temps réel",
     body: "Tablette en cuisine, nouvelles commandes affichées instantanément. Plus de tickets perdus.",
   },
   {
-    title: "Vous gardez vos clients",
-    body: "Pas de commission sur les commandes. Le client paie au resto comme d'habitude.",
+    emoji: "💰",
+    title: "Vous gardez tout",
+    body: "Pas de commission sur les commandes. Vous payez juste votre abonnement.",
   },
   {
+    emoji: "📊",
     title: "Statistiques claires",
     body: "Chiffre d'affaires, top plats, ticket moyen. Export CSV pour votre comptable.",
   },
@@ -71,184 +81,460 @@ const FEATURES = [
 const FAQ = [
   {
     q: "Comment les clients paient-ils ?",
-    a: "Comme d'habitude, au restaurant. Notre plateforme ne prend aucune commission sur les commandes. Vous payez seulement votre abonnement.",
+    a: "Comme d'habitude, au restaurant, en fin de repas. Notre plateforme ne prend aucune commission sur les commandes. Vous payez seulement votre abonnement, et vous gardez 100% du ticket.",
   },
   {
-    q: "Faut-il une application ?",
-    a: "Non. Vos clients scannent le QR code avec leur téléphone et accèdent directement à votre menu. Aucun téléchargement.",
+    q: "Faut-il que le client télécharge une application ?",
+    a: "Non. Le QR code ouvre directement votre menu dans le navigateur. Aucune installation, aucun compte à créer pour le client.",
   },
   {
     q: "Que se passe-t-il si un QR code est volé ou photographié ?",
-    a: "Vous pouvez régénérer le token d'une table en un clic. L'ancien QR devient instantanément invalide.",
+    a: "Vous régénérez le token de la table en un clic depuis votre tableau de bord. L'ancien QR devient instantanément invalide. Réimprimez juste celui-là.",
   },
   {
-    q: "Est-ce légalement conforme en France ?",
-    a: "Oui. Les 14 allergènes UE sont gérés. La commande digitale n'a pas valeur de facture, votre note papier en fin de repas reste l'officielle.",
+    q: "Est-ce conforme à la législation française ?",
+    a: "Oui. Les 14 allergènes UE sont gérés. La commande digitale n'a pas valeur de facture, votre note papier en fin de repas reste l'officielle. Toutes nos pages légales sont prêtes.",
   },
   {
     q: "Puis-je résilier à tout moment ?",
-    a: "Oui pour les abonnements mensuel et annuel, sans engagement. L'option à vie est un achat unique sans renouvellement.",
+    a: "Oui pour les abonnements mensuel et annuel, sans engagement, depuis le portail Stripe. L'option à vie est un achat unique sans renouvellement.",
+  },
+  {
+    q: "Combien de tables et de plats puis-je créer ?",
+    a: "Sans limite, sur tous les plans. Que vous ayez 4 tables ou 80 couverts, c'est le même tarif.",
   },
 ];
 
 const PLAN_DETAILS: Record<
   keyof typeof TIER_CONFIG,
-  { tagline: string; cadence: string; cta: string; highlight?: boolean }
+  { tagline: string; cadence: string; cta: string; highlight?: boolean; perks: string[] }
 > = {
-  monthly: { tagline: "Pour démarrer.", cadence: "/mois", cta: "Choisir le mensuel" },
+  monthly: {
+    tagline: "Pour démarrer sans engagement.",
+    cadence: "/mois",
+    cta: "Commencer ce mois",
+    perks: ["Sans engagement", "Annulable en 1 clic", "Toutes les fonctionnalités"],
+  },
   annual: {
-    tagline: "2 mois offerts. Le plus populaire.",
+    tagline: "L'option populaire — 2 mois offerts.",
     cadence: "/an",
-    cta: "Choisir l'annuel",
+    cta: "Économiser 89 €",
     highlight: true,
+    perks: ["2 mois offerts", "Toutes les fonctionnalités", "Économie immédiate"],
   },
   lifetime: {
     tagline: "Payez une fois, gardez à vie.",
     cadence: "une fois",
     cta: "Acheter à vie",
+    perks: ["Aucun renouvellement", "Mises à jour incluses", "Soutien aux early adopters"],
   },
 };
 
 export default function HomePage() {
   return (
     <>
-      <section className="container mx-auto px-4 pt-20 pb-16 text-center md:pt-32 md:pb-24">
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
-          Vos clients commandent <br className="hidden md:inline" />
-          <span className="text-muted-foreground">depuis leur table.</span>
-        </h1>
-        <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-lg md:text-xl">
-          Un QR code par table, votre menu en ligne, les commandes en cuisine en temps réel. Sans
-          application. Sans commission sur les ventes.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-            Démarrer mon restaurant
-          </Link>
-          <Link href="#tarifs" className={buttonVariants({ size: "lg", variant: "outline" })}>
-            Voir les tarifs
-          </Link>
+      {/* ============= HERO ============= */}
+      <section className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 -right-32 h-[400px] w-[400px] rounded-full bg-[var(--brand-orange)]/15 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-[var(--brand-forest)]/15 blur-3xl"
+        />
+
+        <div className="relative container mx-auto grid items-center gap-12 px-4 pt-16 pb-20 md:grid-cols-2 md:pt-24 md:pb-28">
+          <div className="space-y-6 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-forest)]/20 bg-[var(--brand-forest)]/5 px-3 py-1 text-xs font-medium text-[var(--brand-forest)]">
+              <span className="size-2 rounded-full bg-[var(--brand-forest)]" />
+              Pour les restaurants français
+            </div>
+
+            <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
+              Vos clients{" "}
+              <span className="relative inline-block">
+                commandent
+                <svg
+                  aria-hidden="true"
+                  className="absolute -bottom-2 left-0 h-3 w-full"
+                  viewBox="0 0 100 12"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0 8 Q 25 2, 50 6 T 100 5"
+                    fill="none"
+                    stroke="var(--brand-orange)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>{" "}
+              depuis leur table.
+            </h1>
+
+            <p className="text-muted-foreground max-w-lg text-lg md:text-xl">
+              Un QR code par table. Votre menu en ligne. Les commandes en cuisine en temps
+              réel. <strong className="text-foreground">Sans application. Zéro commission.</strong>
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
+              <Link
+                href="/signup"
+                className={
+                  buttonVariants({ size: "lg" }) +
+                  " shadow-lg shadow-[var(--brand-orange)]/20"
+                }
+              >
+                Démarrer gratuitement →
+              </Link>
+              <Link href="#tarifs" className={buttonVariants({ size: "lg", variant: "outline" })}>
+                Voir les tarifs
+              </Link>
+            </div>
+
+            <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-xs md:justify-start">
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--brand-forest)]">✓</span> Sans engagement
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--brand-forest)]">✓</span> Configuration en 5 min
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--brand-forest)]">✓</span> Support FR
+              </span>
+            </div>
+          </div>
+
+          {/* Mockup phone */}
+          <div className="relative mx-auto w-full max-w-[340px]">
+            {/* QR code décoratif derrière */}
+            <div
+              aria-hidden="true"
+              className="absolute -top-8 -left-8 hidden size-32 -rotate-12 rounded-2xl bg-[var(--brand-forest)] p-3 shadow-xl md:block"
+            >
+              <div className="grid h-full grid-cols-5 grid-rows-5 gap-1">
+                {Array.from({ length: 25 }, (_, i) => {
+                  const corners = [0, 4, 20];
+                  const isCorner = corners.includes(i);
+                  const isAccent = i === 24;
+                  const random = [6, 8, 12, 13, 16, 18];
+                  const filled = isCorner || isAccent || random.includes(i);
+                  return (
+                    <div
+                      key={i}
+                      className={
+                        isAccent
+                          ? "rounded bg-[var(--brand-orange)]"
+                          : isCorner
+                            ? "rounded bg-[var(--brand-saffron)]"
+                            : filled
+                              ? "rounded bg-[var(--brand-cream)]"
+                              : ""
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="relative aspect-[9/19] rounded-[42px] border-[10px] border-foreground bg-foreground shadow-2xl">
+              <div className="bg-background relative h-full w-full overflow-hidden rounded-[32px]">
+                <div className="bg-foreground absolute top-2 left-1/2 z-10 h-5 w-24 -translate-x-1/2 rounded-full" />
+
+                <div className="flex items-center gap-2 border-b px-4 pt-10 pb-3">
+                  <div className="size-7 rounded-full bg-[var(--brand-tomato)]" />
+                  <div>
+                    <p className="text-xs font-semibold">Le Bistrot du Coin</p>
+                    <p className="text-muted-foreground text-[9px]">Table T5 · Terrasse</p>
+                  </div>
+                  <span className="ml-auto rounded-full bg-[var(--brand-saffron)]/30 px-2 py-0.5 text-[8px] font-medium text-[var(--brand-forest)]">
+                    FR
+                  </span>
+                </div>
+
+                <div className="space-y-3 p-3">
+                  <h3 className="text-sm font-semibold">Entrées</h3>
+                  <div className="space-y-2">
+                    <FakeMenuItem
+                      title="Tartare de bœuf"
+                      desc="Au couteau, câpres"
+                      price="14 €"
+                      color="bg-[var(--brand-tomato)]/30"
+                    />
+                    <FakeMenuItem
+                      title="Burrata fumée"
+                      desc="Tomates anciennes"
+                      price="12 €"
+                      color="bg-[var(--brand-orange)]/30"
+                    />
+                    <FakeMenuItem
+                      title="Œuf parfait"
+                      desc="Champignons sauvages"
+                      price="11 €"
+                      color="bg-[var(--brand-saffron)]/40"
+                    />
+                  </div>
+                </div>
+
+                <div className="absolute right-3 bottom-3 left-3">
+                  <div className="bg-foreground text-background flex items-center justify-between rounded-full px-4 py-2.5 text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="bg-background text-foreground flex size-4 items-center justify-center rounded-full text-[9px] font-bold">
+                        2
+                      </span>
+                      Voir mon panier
+                    </span>
+                    <span className="font-mono">26 €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification flottante */}
+            <div
+              aria-hidden="true"
+              className="bg-card absolute top-32 -right-4 hidden rounded-xl border p-3 shadow-lg md:block"
+            >
+              <div className="flex items-center gap-2 text-xs">
+                <div className="bg-[var(--brand-forest)] flex size-7 items-center justify-center rounded-full text-white">
+                  ✓
+                </div>
+                <div>
+                  <p className="font-semibold">Commande envoyée</p>
+                  <p className="text-muted-foreground text-[10px]">En cuisine — Table T5</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-muted-foreground mt-4 text-xs">
-          Sans engagement · Annulable à tout moment
-        </p>
       </section>
 
-      <section className="container mx-auto px-4 py-16">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Comment ça marche</h2>
-          <p className="text-muted-foreground mt-2">3 étapes pour démarrer ce soir.</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {STEPS.map((step) => (
-            <Card key={step.num} className="border-none shadow-none">
-              <CardHeader>
-                <div className="bg-foreground text-background flex size-10 items-center justify-center rounded-full text-lg font-bold">
-                  {step.num}
-                </div>
-                <CardTitle className="text-lg">{step.title}</CardTitle>
-                <CardDescription>{step.body}</CardDescription>
-              </CardHeader>
-            </Card>
+      {/* ============= STATS BAR ============= */}
+      <section className="border-y bg-[var(--brand-forest)] text-[var(--brand-cream)]">
+        <div className="container mx-auto grid divide-y divide-[var(--brand-cream)]/10 px-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="px-6 py-8 text-center">
+              <div className="text-4xl font-bold tracking-tight md:text-5xl">{stat.value}</div>
+              <p className="mt-1 text-sm text-[var(--brand-cream)]/70">{stat.label}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      <section id="fonctionnalites" className="bg-muted/30 border-y py-16">
+      {/* ============= COMMENT ÇA MARCHE ============= */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-medium tracking-wide text-[var(--brand-orange)] uppercase">
+            En 3 étapes
+          </p>
+          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+            Démarrer ce soir, c&apos;est possible.
+          </h2>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {STEPS.map((step) => (
+            <div
+              key={step.num}
+              className={`relative overflow-hidden rounded-2xl border p-6 transition-all hover:-translate-y-1 hover:shadow-lg ${step.bg}`}
+            >
+              <div className="absolute -right-4 -bottom-4 text-7xl opacity-30">{step.emoji}</div>
+              <div className="bg-foreground text-background mb-4 flex size-10 items-center justify-center rounded-full text-lg font-bold">
+                {step.num}
+              </div>
+              <h3 className="text-xl font-bold">{step.title}</h3>
+              <p className="text-muted-foreground mt-2 text-sm">{step.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============= FEATURES ============= */}
+      <section
+        id="fonctionnalites"
+        className="bg-[var(--brand-forest)] py-20 text-[var(--brand-cream)]"
+      >
         <div className="container mx-auto px-4">
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Tout pour votre service</h2>
-            <p className="text-muted-foreground mt-2">
-              Du menu jusqu&apos;aux statistiques, en passant par le QR code à plastifier.
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-sm font-medium tracking-wide text-[var(--brand-saffron)] uppercase">
+              Tout inclus
+            </p>
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+              Pensé pour votre service.
+            </h2>
+            <p className="mt-3 text-lg text-[var(--brand-cream)]/70">
+              Du menu jusqu&apos;à la cuisine, tout est en place.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((feat) => (
-              <Card key={feat.title}>
-                <CardHeader>
-                  <CardTitle className="text-base">{feat.title}</CardTitle>
-                  <CardDescription>{feat.body}</CardDescription>
-                </CardHeader>
-              </Card>
+              <div
+                key={feat.title}
+                className="group relative overflow-hidden rounded-xl border border-[var(--brand-cream)]/10 bg-[var(--brand-cream)]/5 p-6 backdrop-blur transition-all hover:bg-[var(--brand-cream)]/10"
+              >
+                <div className="text-3xl">{feat.emoji}</div>
+                <h3 className="mt-3 text-lg font-bold">{feat.title}</h3>
+                <p className="mt-1 text-sm text-[var(--brand-cream)]/70">{feat.body}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="tarifs" className="container mx-auto px-4 py-16">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Tarifs simples</h2>
-          <p className="text-muted-foreground mt-2">
-            Pas de commission sur les commandes. Juste votre abonnement.
+      {/* ============= TARIFS ============= */}
+      <section id="tarifs" className="container mx-auto px-4 py-20">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-medium tracking-wide text-[var(--brand-orange)] uppercase">
+            Tarifs simples
+          </p>
+          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+            Choisissez votre formule.
+          </h2>
+          <p className="text-muted-foreground mt-3 text-lg">
+            Pas de commission sur les ventes. Juste votre abonnement.
           </p>
         </div>
-        <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
           {(Object.keys(PLAN_DETAILS) as (keyof typeof TIER_CONFIG)[]).map((tier) => {
             const config = TIER_CONFIG[tier];
             const detail = PLAN_DETAILS[tier];
             return (
-              <Card
+              <div
                 key={tier}
-                className={detail.highlight ? "border-foreground shadow-md" : undefined}
+                className={`relative overflow-hidden rounded-2xl border-2 p-6 transition-all hover:-translate-y-1 hover:shadow-xl ${
+                  detail.highlight
+                    ? "border-[var(--brand-orange)] bg-[var(--brand-orange)]/5 shadow-lg"
+                    : "bg-card"
+                }`}
               >
-                <CardHeader>
-                  <CardTitle>{config.label}</CardTitle>
-                  <CardDescription>{detail.tagline}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">{config.amountEur} €</span>
-                    <span className="text-muted-foreground text-sm">{detail.cadence}</span>
+                {detail.highlight ? (
+                  <div className="absolute -top-3 right-6 rounded-full bg-[var(--brand-orange)] px-3 py-1 text-xs font-semibold text-white">
+                    Le plus choisi
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Link
-                    href="/signup"
-                    className={`w-full text-center ${buttonVariants({
-                      variant: detail.highlight ? "default" : "outline",
-                    })}`}
-                  >
-                    {detail.cta}
-                  </Link>
-                </CardFooter>
-              </Card>
+                ) : null}
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold">{config.label}</h3>
+                  <p className="text-muted-foreground text-sm">{detail.tagline}</p>
+                </div>
+                <div className="my-6 flex items-baseline gap-1">
+                  <span className="text-5xl font-bold tracking-tight">{config.amountEur}</span>
+                  <span className="text-2xl font-bold">€</span>
+                  <span className="text-muted-foreground ml-1 text-sm">{detail.cadence}</span>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  {detail.perks.map((perk) => (
+                    <li key={perk} className="flex items-center gap-2">
+                      <span className="text-[var(--brand-forest)]">✓</span>
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/signup"
+                  className={`mt-6 block w-full text-center ${buttonVariants({
+                    variant: detail.highlight ? "default" : "outline",
+                    size: "lg",
+                  })}`}
+                >
+                  {detail.cta}
+                </Link>
+              </div>
             );
           })}
         </div>
+        <p className="text-muted-foreground mt-8 text-center text-xs">
+          Tarifs HT. Paiement sécurisé Stripe. Annulable à tout moment.
+        </p>
       </section>
 
-      <section id="faq" className="bg-muted/30 border-y py-16">
+      {/* ============= FAQ ============= */}
+      <section id="faq" className="bg-[var(--brand-saffron)]/15 py-20">
         <div className="container mx-auto max-w-3xl px-4">
-          <h2 className="mb-8 text-center text-3xl font-bold tracking-tight">
-            Questions fréquentes
-          </h2>
-          <div className="space-y-4">
+          <div className="mb-10 text-center">
+            <p className="mb-2 text-sm font-medium tracking-wide text-[var(--brand-orange)] uppercase">
+              FAQ
+            </p>
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+              Questions fréquentes.
+            </h2>
+          </div>
+          <div className="space-y-3">
             {FAQ.map((item) => (
-              <details key={item.q} className="bg-card group rounded-lg border p-4">
-                <summary className="flex cursor-pointer items-center justify-between gap-3 font-medium">
+              <details
+                key={item.q}
+                className="group bg-card overflow-hidden rounded-xl border transition-colors hover:border-[var(--brand-orange)]/50"
+              >
+                <summary className="flex cursor-pointer items-center justify-between gap-3 p-5 font-medium">
                   {item.q}
-                  <span className="text-muted-foreground transition-transform group-open:rotate-45">
+                  <span className="bg-[var(--brand-orange)]/10 text-[var(--brand-orange)] flex size-8 shrink-0 items-center justify-center rounded-full text-xl transition-transform group-open:rotate-45">
                     +
                   </span>
                 </summary>
-                <p className="text-muted-foreground mt-2 text-sm">{item.a}</p>
+                <p className="text-muted-foreground border-t px-5 py-4 text-sm leading-relaxed">
+                  {item.a}
+                </p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-bold tracking-tight">Prêt à démarrer ?</h2>
-        <p className="text-muted-foreground mt-2">
-          Configurez votre menu en moins d&apos;une heure. Premier QR imprimé ce soir.
-        </p>
-        <div className="mt-6">
-          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
-            Créer mon compte
-          </Link>
+      {/* ============= CTA FINAL ============= */}
+      <section className="bg-foreground text-background relative overflow-hidden py-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-[var(--brand-orange)]/30 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-[var(--brand-forest)]/30 blur-3xl"
+        />
+        <div className="relative container mx-auto px-4 text-center">
+          <h2 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight md:text-5xl">
+            Prêt à libérer vos serveurs ?
+          </h2>
+          <p className="text-background/70 mx-auto mt-4 max-w-xl text-lg">
+            Configurez votre menu en moins d&apos;une heure. Premier QR imprimé ce soir.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center rounded-md bg-[var(--brand-orange)] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-[var(--brand-orange)]/30 transition-all hover:scale-105"
+            >
+              Créer mon compte →
+            </Link>
+            <Link
+              href="#tarifs"
+              className="text-background/80 hover:text-background underline-offset-4 hover:underline"
+            >
+              Voir les tarifs
+            </Link>
+          </div>
         </div>
       </section>
     </>
+  );
+}
+
+function FakeMenuItem({
+  title,
+  desc,
+  price,
+  color,
+}: {
+  title: string;
+  desc: string;
+  price: string;
+  color: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`size-10 shrink-0 rounded-md ${color}`} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium">{title}</p>
+        <p className="text-muted-foreground truncate text-[10px]">{desc}</p>
+      </div>
+      <span className="font-mono text-xs font-semibold">{price}</span>
+    </div>
   );
 }

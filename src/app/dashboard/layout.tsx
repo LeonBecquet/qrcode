@@ -31,6 +31,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link href="/dashboard" className="hover:underline">
               Vue d&apos;ensemble
             </Link>
+            <Link href="/dashboard/kitchen" className="hover:underline">
+              Cuisine
+            </Link>
             <Link href="/dashboard/menu" className="hover:underline">
               Menus
             </Link>

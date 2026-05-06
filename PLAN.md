@@ -326,16 +326,21 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 
 **Livrable** : scan QR → menu → ajout panier → checkout → suivi temps réel (5s polling) → appel serveur. End-to-end fonctionnel.
 
-### **Phase 7 — Dashboard cuisine temps réel** (j30-34)
-- Route `/dashboard/kitchen`
-- Subscribe au canal Pusher `private-restaurant-{id}`
-- Cards de commandes en colonnes (Reçues / En cuisine / Prêtes)
-- Boutons transitions de statut
-- Son + flash visuel sur nouvelle commande
-- Filtres par table / par catégorie de plat (cuisine vs bar pour boissons — phase 2 si trop)
-- Bouton "Imprimer ticket" (window.print sur layout dédié)
-- Permission par rôle (staff_kitchen vs staff_waiter — vues différentes)
-- **Livrable** : staff peut piloter le service depuis tablette/PC.
+### **Phase 7 — Dashboard cuisine temps réel** ✅ FAIT
+- ✅ Lib `pusher.ts` (server, lazy-init) avec `triggerRestaurantEvent` + `triggerTableEvent`, no-op silencieux si pas configuré
+- ✅ Lib `pusher-client.ts` avec singleton `getPusherClient()`
+- ✅ ENV Pusher 6 vars optionnelles ; le polling client (5s + 8s kitchen fallback) compense si absent
+- ✅ Page `/dashboard/kitchen` avec section "Appels serveur" en haut + 4 colonnes (Reçues / Acceptées / En cuisine / Prêtes)
+- ✅ `OrderCard` client : items + note client + transitions (Accepter → Démarrer → Marquer prête → Servie) + Annuler avec confirm
+- ✅ `ServiceRequestCard` : badge ambre, bouton "Vu ✓"
+- ✅ `KitchenSubscriber` client : Pusher subscribe avec fallback polling 8s
+- ✅ Server actions : `updateOrderStatusAction` (avec validation transitions valides), `resolveServiceRequestAction`
+- ✅ Triggers Pusher sur `createOrderAction`, `callWaiterAction`, `updateOrderStatusAction`, `resolveServiceRequestAction`
+- ✅ Lien "Cuisine" dans header dashboard
+- ⏳ Son sur nouvelle commande → reporté (V2 si demande staff)
+- ⏳ Filtres par table / catégorie + impression ticket → reportés (suffit pour MVP)
+- ⏳ Vues différentes par rôle (staff_kitchen vs staff_waiter) → reporté, pour MVP tous voient tout
+- **Livrable** : staff ouvre `/dashboard/kitchen`, voit les commandes en temps réel, change leur statut, traite les appels serveur. Avec Pusher : instant. Sans : 8s.
 
 ### **Phase 8 — Analytics resto** (j35-37)
 - Page `/dashboard/analytics`

@@ -16,6 +16,7 @@ import {
   serviceRequests,
   tables,
 } from "@/lib/db/schema";
+import { triggerRestaurantEvent } from "@/lib/pusher";
 
 const ACTIVE_SUB_STATUSES = ["active", "trialing", "past_due"];
 
@@ -182,6 +183,12 @@ export async function createOrderAction(
   });
 
   if (!createdId) return { error: "Erreur lors de la création." };
+
+  await triggerRestaurantEvent(row.restaurant.id, "order:created", {
+    orderId: createdId,
+    tableLabel: row.table.label,
+  });
+
   return { orderId: createdId };
 }
 
@@ -211,6 +218,10 @@ export async function callWaiterAction(raw: unknown): Promise<ServiceRequestResu
     tableId: row.table.id,
     tableLabelSnapshot: row.table.label,
     type: "call_waiter",
+  });
+
+  await triggerRestaurantEvent(row.restaurant.id, "service-request:created", {
+    tableLabel: row.table.label,
   });
 
   return { ok: true };

@@ -26,6 +26,15 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET: z.string().optional(),
   R2_PUBLIC_URL: z.url().optional(),
+
+  // Pusher — temps réel cuisine (Phase 7). Optionnel : si absent, le polling 5s
+  // côté client fait l'affaire en attendant.
+  PUSHER_APP_ID: z.string().optional(),
+  PUSHER_KEY: z.string().optional(),
+  PUSHER_SECRET: z.string().optional(),
+  PUSHER_CLUSTER: z.string().optional(),
+  NEXT_PUBLIC_PUSHER_KEY: z.string().optional(),
+  NEXT_PUBLIC_PUSHER_CLUSTER: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

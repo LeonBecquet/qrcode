@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { CallWaiterButton } from "./call-waiter-button";
+import { LocaleSwitcher } from "./locale-switcher";
+import { getPublicLocale } from "@/lib/server/locale";
 import { resolvePublicTable } from "@/lib/server/public-resolver";
 
 export default async function PublicTableLayout({
@@ -11,6 +13,8 @@ export default async function PublicTableLayout({
 }) {
   const { slug, token } = await params;
   const { restaurant, table } = await resolvePublicTable(slug, token);
+  const locale = await getPublicLocale(restaurant.languages);
+  const showLocaleSwitcher = restaurant.languages.includes("en");
 
   const themePrimary = restaurant.theme?.primary;
 
@@ -46,6 +50,7 @@ export default async function PublicTableLayout({
               {table.groupName ? ` · ${table.groupName}` : ""}
             </p>
           </div>
+          {showLocaleSwitcher ? <LocaleSwitcher current={locale} /> : null}
           <CallWaiterButton slug={slug} token={token} />
         </div>
       </header>

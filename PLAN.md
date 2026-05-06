@@ -297,18 +297,34 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - ✅ Lien "Tables" dans header dashboard
 - **Livrable** : `pnpm dev` → /dashboard/tables → ajouter 10 tables → "Télécharger tous les QR" → PDF prêt à imprimer/plastifier.
 
-### **Phase 6 — App client (PWA)** (j23-29)
-- Route publique `/r/[slug]/t/[token]` : résout resto + table, charge le menu actif (selon heure/jour)
-- Manifest PWA + service worker minimal (offline = "reconnexion impossible")
-- UI menu : tabs catégories sticky, scroll items, photo + prix
-- Modal item : description, allergènes, options, quantité, "ajouter au panier"
-- Drawer panier (localStorage par token de table)
-- Checkout : nom optionnel, note (allergies, "sans oignon"), valider
-- Création commande (POST `/api/orders`)
-- Page suivi `/r/[slug]/t/[token]/order/[id]` : statut en temps réel via Pusher
-- Bouton "Appeler un serveur" (crée un event, voir §6)
-- i18n FR/EN selon resto
-- **Livrable** : un client peut scanner, commander, voir son statut. End-to-end fonctionnel.
+### **Phase 6 — App client (PWA)** ✅ FAIT (6A + 6B + 6C)
+
+**6A — Schema + menu + cart** ✅
+- ✅ Schema : `orders`, `order_items` (avec snapshots prix/options en jsonb), `service_requests` + migration 0004
+- ✅ Helper `resolvePublicTable` : valide slug+token, table active, sub active
+- ✅ `loadPublicMenu` : 1er menu publié, catégories visibles, items+options+choices
+- ✅ Layout publique avec header (logo+nom+label table), thème CSS variable depuis resto
+- ✅ Page menu : nav sticky catégories, cards items avec photo+allergens+prix
+- ✅ Page item détail : photo, description, allergènes, options (radio/checkbox), quantity, ajout panier
+- ✅ Cart store via `useSyncExternalStore` (SSR-safe), localStorage par token
+
+**6B — Checkout + suivi + appel serveur** ✅
+- ✅ `createOrderAction` : re-fetch prix/options server-side (anti-tampering), validation `isAvailable`, scoping resto via joins, snapshots dans `order_items`
+- ✅ CheckoutForm : nom + note optionnels, clear cart à succès, redirect `/order/[id]`
+- ✅ Page `/order/[orderId]` : statut + récap + total avec étapes visuelles (pending → accepted → in_kitchen → ready → served)
+- ✅ `PollStatus` client : `router.refresh()` toutes les 5s tant que pas final (en attendant Pusher Phase 7)
+- ✅ `callWaiterAction` + bouton "Appeler" dans le header (cooldown 30s visuel)
+
+**6C — i18n contenu + PWA** ✅
+- ✅ Cookie `qr_locale` via `getPublicLocale()` server-side
+- ✅ `LocaleSwitcher` FR/EN dans le header (uniquement si resto bilingue)
+- ✅ Helpers `pickLocalizedText` + `pickLocalizedDescription`
+- ✅ Pages menu + item + add-to-cart utilisent la locale (noms catégories/items/options + allergens labels)
+- ✅ Manifest PWA via `app/manifest.ts` (installable à l'écran d'accueil)
+- ⏳ UI complète FR/EN (boutons "Voir mon panier", etc.) → reportée, on a juste les principaux strings traduits inline
+- ⏳ Service worker offline → reporté V2 (PWA installable suffit pour MVP)
+
+**Livrable** : scan QR → menu → ajout panier → checkout → suivi temps réel (5s polling) → appel serveur. End-to-end fonctionnel.
 
 ### **Phase 7 — Dashboard cuisine temps réel** (j30-34)
 - Route `/dashboard/kitchen`

@@ -12,23 +12,46 @@ import {
   menuItems,
   menus,
 } from "@/lib/db/schema";
+import {
+  getPublicLocale,
+  pickLocalizedDescription,
+  pickLocalizedText,
+} from "@/lib/server/locale";
 import { resolvePublicTable } from "@/lib/server/public-resolver";
 
-const ALLERGEN_LABELS: Record<Allergen, string> = {
-  gluten: "Gluten",
-  crustaces: "Crustacés",
-  oeufs: "Œufs",
-  poisson: "Poisson",
-  arachide: "Arachide",
-  soja: "Soja",
-  lait: "Lait",
-  "fruits-coque": "Fruits à coque",
-  celeri: "Céleri",
-  moutarde: "Moutarde",
-  sesame: "Sésame",
-  sulfites: "Sulfites",
-  lupin: "Lupin",
-  mollusques: "Mollusques",
+const ALLERGEN_LABELS: Record<"fr" | "en", Record<Allergen, string>> = {
+  fr: {
+    gluten: "Gluten",
+    crustaces: "Crustacés",
+    oeufs: "Œufs",
+    poisson: "Poisson",
+    arachide: "Arachide",
+    soja: "Soja",
+    lait: "Lait",
+    "fruits-coque": "Fruits à coque",
+    celeri: "Céleri",
+    moutarde: "Moutarde",
+    sesame: "Sésame",
+    sulfites: "Sulfites",
+    lupin: "Lupin",
+    mollusques: "Mollusques",
+  },
+  en: {
+    gluten: "Gluten",
+    crustaces: "Crustaceans",
+    oeufs: "Eggs",
+    poisson: "Fish",
+    arachide: "Peanuts",
+    soja: "Soy",
+    lait: "Dairy",
+    "fruits-coque": "Tree nuts",
+    celeri: "Celery",
+    moutarde: "Mustard",
+    sesame: "Sesame",
+    sulfites: "Sulphites",
+    lupin: "Lupin",
+    mollusques: "Molluscs",
+  },
 };
 
 export default async function PublicItemPage({
@@ -38,6 +61,7 @@ export default async function PublicItemPage({
 }) {
   const { slug, token, itemId } = await params;
   const { restaurant } = await resolvePublicTable(slug, token);
+  const locale = await getPublicLocale(restaurant.languages);
 
   const found = await db
     .select({ item: menuItems })
@@ -84,7 +108,9 @@ export default async function PublicItemPage({
     choices: choicesByOption.get(opt.id) ?? [],
   }));
 
-  const allergenList = item.allergens.filter((a): a is Allergen => a in ALLERGEN_LABELS);
+  const allergenList = item.allergens.filter((a): a is Allergen => a in ALLERGEN_LABELS.fr);
+  const itemName = pickLocalizedText(item, locale);
+  const itemDesc = pickLocalizedDescription(item, locale);
 
   return (
     <article className="space-y-5 py-4">
@@ -92,14 +118,14 @@ export default async function PublicItemPage({
         href={`/r/${slug}/t/${token}`}
         className="text-muted-foreground hover:text-foreground inline-block text-sm"
       >
-        ← Retour au menu
+        ← {locale === "en" ? "Back to menu" : "Retour au menu"}
       </Link>
 
       {item.imageUrl ? (
         <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden rounded-lg">
           <Image
             src={item.imageUrl}
-            alt={item.nameFr}
+            alt={itemName}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 768px"
@@ -109,18 +135,23 @@ export default async function PublicItemPage({
       ) : null}
 
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{item.nameFr}</h1>
-        {item.descriptionFr ? (
-          <p className="text-muted-foreground">{item.descriptionFr}</p>
-        ) : null}
+        <h1 className="text-2xl font-semibold tracking-tight">{itemName}</h1>
+        {itemDesc ? <p className="text-muted-foreground">{itemDesc}</p> : null}
         {allergenList.length > 0 ? (
           <p className="text-muted-foreground text-xs">
-            Allergènes : {allergenList.map((a) => ALLERGEN_LABELS[a]).join(", ")}
+            {locale === "en" ? "Allergens: " : "Allergènes : "}
+            {allergenList.map((a) => ALLERGEN_LABELS[locale][a]).join(", ")}
           </p>
         ) : null}
       </header>
 
-      <AddToCart slug={slug} token={token} item={item} options={optionsWithChoices} />
+      <AddToCart
+        slug={slug}
+        token={token}
+        item={item}
+        options={optionsWithChoices}
+        locale={locale}
+      />
     </article>
   );
 }

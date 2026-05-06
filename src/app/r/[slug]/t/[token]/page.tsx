@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CartButton } from "./cart-button";
+import {
+  getPublicLocale,
+  pickLocalizedDescription,
+  pickLocalizedText,
+} from "@/lib/server/locale";
 import { loadPublicMenu, resolvePublicTable } from "@/lib/server/public-resolver";
 
 const priceFormatter = new Intl.NumberFormat("fr-FR", {
@@ -15,12 +20,17 @@ export default async function PublicMenuPage({
 }) {
   const { slug, token } = await params;
   const { restaurant } = await resolvePublicTable(slug, token);
+  const locale = await getPublicLocale(restaurant.languages);
   const publicMenu = await loadPublicMenu(restaurant.id);
 
   if (!publicMenu || publicMenu.categories.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-muted-foreground">Le menu n&apos;est pas encore disponible.</p>
+        <p className="text-muted-foreground">
+          {locale === "en"
+            ? "The menu is not available yet."
+            : "Le menu n'est pas encore disponible."}
+        </p>
       </div>
     );
   }
@@ -39,7 +49,7 @@ export default async function PublicMenuPage({
                   href={`#cat-${cat.id}`}
                   className="hover:bg-muted block rounded px-3 py-1.5"
                 >
-                  {cat.nameFr}
+                  {pickLocalizedText(cat, locale)}
                 </a>
               </li>
             ))}
@@ -48,58 +58,70 @@ export default async function PublicMenuPage({
       ) : null}
 
       <div className="space-y-8 py-4">
-        {visibleCategories.map((category) => (
-          <section key={category.id} id={`cat-${category.id}`} className="scroll-mt-32 space-y-3">
-            <header>
-              <h2 className="text-2xl font-semibold tracking-tight">{category.nameFr}</h2>
-              {category.descriptionFr ? (
-                <p className="text-muted-foreground text-sm">{category.descriptionFr}</p>
-              ) : null}
-            </header>
+        {visibleCategories.map((category) => {
+          const catName = pickLocalizedText(category, locale);
+          const catDesc = pickLocalizedDescription(category, locale);
+          return (
+            <section
+              key={category.id}
+              id={`cat-${category.id}`}
+              className="scroll-mt-32 space-y-3"
+            >
+              <header>
+                <h2 className="text-2xl font-semibold tracking-tight">{catName}</h2>
+                {catDesc ? (
+                  <p className="text-muted-foreground text-sm">{catDesc}</p>
+                ) : null}
+              </header>
 
-            <ul className="divide-y rounded-lg border">
-              {category.items.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={`/r/${slug}/t/${token}/items/${item.id}`}
-                    className="hover:bg-muted/40 flex items-stretch gap-3 p-3 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-medium">{item.nameFr}</h3>
-                        {!item.isAvailable ? (
-                          <span className="text-destructive bg-destructive/10 rounded px-1.5 py-0.5 text-xs">
-                            Indisponible
-                          </span>
+              <ul className="divide-y rounded-lg border">
+                {category.items.map((item) => {
+                  const itemName = pickLocalizedText(item, locale);
+                  const itemDesc = pickLocalizedDescription(item, locale);
+                  return (
+                    <li key={item.id}>
+                      <Link
+                        href={`/r/${slug}/t/${token}/items/${item.id}`}
+                        className="hover:bg-muted/40 flex items-stretch gap-3 p-3 transition-colors"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-medium">{itemName}</h3>
+                            {!item.isAvailable ? (
+                              <span className="text-destructive bg-destructive/10 rounded px-1.5 py-0.5 text-xs">
+                                {locale === "en" ? "Unavailable" : "Indisponible"}
+                              </span>
+                            ) : null}
+                          </div>
+                          {itemDesc ? (
+                            <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
+                              {itemDesc}
+                            </p>
+                          ) : null}
+                          <p className="mt-2 font-mono text-sm font-semibold">
+                            {priceFormatter.format(item.priceCents / 100)}
+                          </p>
+                        </div>
+                        {item.imageUrl ? (
+                          <div className="bg-muted relative size-24 shrink-0 overflow-hidden rounded-md">
+                            <Image
+                              src={item.imageUrl}
+                              alt={itemName}
+                              fill
+                              className="object-cover"
+                              sizes="96px"
+                              unoptimized
+                            />
+                          </div>
                         ) : null}
-                      </div>
-                      {item.descriptionFr ? (
-                        <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
-                          {item.descriptionFr}
-                        </p>
-                      ) : null}
-                      <p className="mt-2 font-mono text-sm font-semibold">
-                        {priceFormatter.format(item.priceCents / 100)}
-                      </p>
-                    </div>
-                    {item.imageUrl ? (
-                      <div className="bg-muted relative size-24 shrink-0 overflow-hidden rounded-md">
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.nameFr}
-                          fill
-                          className="object-cover"
-                          sizes="96px"
-                          unoptimized
-                        />
-                      </div>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
       </div>
 
       <CartButton slug={slug} token={token} />

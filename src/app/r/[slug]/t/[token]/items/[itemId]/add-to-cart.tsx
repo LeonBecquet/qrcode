@@ -17,9 +17,17 @@ type Props = {
   token: string;
   item: MenuItem;
   options: (MenuItemOption & { choices: MenuItemOptionChoice[] })[];
+  locale: "fr" | "en";
 };
 
-export function AddToCart({ slug, token, item, options }: Props) {
+function pickName<T extends { nameFr: string; nameEn: string | null }>(
+  obj: T,
+  locale: "fr" | "en",
+): string {
+  return locale === "en" && obj.nameEn ? obj.nameEn : obj.nameFr;
+}
+
+export function AddToCart({ slug, token, item, options, locale }: Props) {
   const router = useRouter();
   const { addLine } = useCart(token);
 
@@ -82,16 +90,16 @@ export function AddToCart({ slug, token, item, options }: Props) {
         .filter((c) => set.has(c.id))
         .map((c) => ({
           optionId: opt.id,
-          optionName: opt.nameFr,
+          optionName: pickName(opt, locale),
           choiceId: c.id,
-          choiceName: c.nameFr,
+          choiceName: pickName(c, locale),
           priceDeltaCents: c.priceDeltaCents,
         }));
     });
 
     addLine({
       itemId: item.id,
-      nameSnapshot: item.nameFr,
+      nameSnapshot: pickName(item, locale),
       priceCentsSnapshot: item.priceCents,
       quantity,
       options: chosen,
@@ -109,12 +117,18 @@ export function AddToCart({ slug, token, item, options }: Props) {
             return (
               <fieldset key={opt.id} className="space-y-2">
                 <legend className="font-medium">
-                  {opt.nameFr}
+                  {pickName(opt, locale)}
                   {opt.isRequired ? (
                     <span className="text-destructive ml-1">*</span>
                   ) : null}
                   <span className="text-muted-foreground ml-2 text-xs font-normal">
-                    {opt.type === "single" ? "Choisir un" : "Choix multiples"}
+                    {opt.type === "single"
+                      ? locale === "en"
+                        ? "Pick one"
+                        : "Choisir un"
+                      : locale === "en"
+                        ? "Multiple"
+                        : "Choix multiples"}
                   </span>
                 </legend>
                 <div className="space-y-1.5">
@@ -136,7 +150,7 @@ export function AddToCart({ slug, token, item, options }: Props) {
                             onChange={() => toggleChoice(opt, choice.id)}
                             className="size-4 accent-current"
                           />
-                          <span className="text-sm">{choice.nameFr}</span>
+                          <span className="text-sm">{pickName(choice, locale)}</span>
                         </span>
                         {choice.priceDeltaCents !== 0 ? (
                           <span className="text-muted-foreground font-mono text-xs">
@@ -186,10 +200,14 @@ export function AddToCart({ slug, token, item, options }: Props) {
           className="flex-1"
         >
           {!item.isAvailable
-            ? "Indisponible"
+            ? locale === "en"
+              ? "Unavailable"
+              : "Indisponible"
             : missingRequired.length > 0
-              ? "Choisissez une option"
-              : `Ajouter — ${formatter.format(totalCents / 100)}`}
+              ? locale === "en"
+                ? "Choose an option"
+                : "Choisissez une option"
+              : `${locale === "en" ? "Add" : "Ajouter"} — ${formatter.format(totalCents / 100)}`}
         </Button>
       </div>
     </div>

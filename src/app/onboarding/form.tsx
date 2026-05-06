@@ -1,18 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { createRestaurantAction } from "./actions";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createRestaurantAction } from "./actions";
 
 export default function OnboardingForm() {
   const [error, setError] = useState<string | null>(null);
@@ -29,35 +21,34 @@ export default function OnboardingForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl">Bienvenue !</CardTitle>
-        <CardDescription>
-          Donnez un nom à votre restaurant. Vous pourrez tout configurer ensuite (logo, horaires,
-          menu).
-        </CardDescription>
-      </CardHeader>
-      <form action={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom du restaurant</Label>
-            <Input
-              id="name"
-              name="name"
-              required
-              minLength={2}
-              maxLength={80}
-              placeholder="Le Bistrot du Coin"
-            />
-          </div>
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Création..." : "Créer mon restaurant"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+    <form action={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="name">Nom du restaurant</Label>
+        <Input
+          id="name"
+          name="name"
+          required
+          minLength={2}
+          maxLength={80}
+          placeholder="Le Bistrot du Coin"
+          className="h-11"
+        />
+      </div>
+
+      {error ? (
+        <div className="bg-destructive/10 text-destructive border-destructive/20 rounded-md border px-3 py-2 text-sm">
+          {error}
+        </div>
+      ) : null}
+
+      <Button
+        type="submit"
+        size="lg"
+        disabled={pending}
+        className="w-full bg-[var(--brand-orange)] text-white shadow-md shadow-[var(--brand-orange)]/20 hover:bg-[var(--brand-orange)]/90"
+      >
+        {pending ? "Création..." : "Créer mon restaurant →"}
+      </Button>
+    </form>
   );
 }

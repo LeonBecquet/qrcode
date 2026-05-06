@@ -1,17 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
@@ -46,48 +37,45 @@ export default function SignInForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl">Connexion</CardTitle>
-        <CardDescription>Accédez au tableau de bord de votre restaurant.</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="vous@restaurant.fr"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-            />
-          </div>
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
-          </Button>
-          <p className="text-muted-foreground text-center text-sm">
-            Pas encore de compte ?{" "}
-            <Link href="/signup" className="underline-offset-4 hover:underline">
-              Créer un compte
-            </Link>
-          </p>
-        </CardFooter>
-      </form>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="vous@restaurant.fr"
+          className="h-11"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Mot de passe</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          className="h-11"
+        />
+      </div>
+
+      {error ? (
+        <div className="bg-destructive/10 text-destructive border-destructive/20 rounded-md border px-3 py-2 text-sm">
+          {error}
+        </div>
+      ) : null}
+
+      <Button
+        type="submit"
+        size="lg"
+        disabled={loading}
+        className="w-full bg-[var(--brand-orange)] text-white shadow-md shadow-[var(--brand-orange)]/20 hover:bg-[var(--brand-orange)]/90"
+      >
+        {loading ? "Connexion..." : "Se connecter"}
+      </Button>
+    </form>
   );
 }

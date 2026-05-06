@@ -1,10 +1,12 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   unique,
   uuid,
@@ -119,6 +121,24 @@ export const restaurants = pgTable("restaurants", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const restaurantHours = pgTable(
+  "restaurant_hours",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    restaurantId: uuid("restaurant_id")
+      .notNull()
+      .references(() => restaurants.id, { onDelete: "cascade" }),
+    // 0 = dimanche, 1 = lundi, ..., 6 = samedi (JS getDay() convention)
+    dayOfWeek: integer("day_of_week").notNull(),
+    openTime: time("open_time"),
+    closeTime: time("close_time"),
+    isClosed: boolean("is_closed").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [unique("hours_resto_day_uniq").on(t.restaurantId, t.dayOfWeek)],
+);
+
 export const memberRole = pgEnum("member_role", [
   "owner",
   "admin",
@@ -154,6 +174,14 @@ export const userRelations = relations(user, ({ many }) => ({
 
 export const restaurantRelations = relations(restaurants, ({ many }) => ({
   memberships: many(memberships),
+  hours: many(restaurantHours),
+}));
+
+export const restaurantHoursRelations = relations(restaurantHours, ({ one }) => ({
+  restaurant: one(restaurants, {
+    fields: [restaurantHours.restaurantId],
+    references: [restaurants.id],
+  }),
 }));
 
 export const membershipRelations = relations(memberships, ({ one }) => ({
@@ -188,6 +216,7 @@ export const accountRelations = relations(account, ({ one }) => ({
 export type User = typeof user.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type Membership = typeof memberships.$inferSelect;
+export type RestaurantHours = typeof restaurantHours.$inferSelect;
 export type MemberRole = (typeof memberRole.enumValues)[number];
 export type SubTier = (typeof subTier.enumValues)[number];
 export type SubStatus = (typeof subStatusEnum.enumValues)[number];

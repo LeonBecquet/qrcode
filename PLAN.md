@@ -254,13 +254,17 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - **Livrable** : signup → onboarding → /pricing → Stripe Checkout → webhook → /dashboard accessible. Gestion abo via Stripe Portal pour mensuel/annuel.
 - **Pour tester en local** : `stripe listen --forward-to localhost:3000/api/stripe/webhook` et coller le whsec_ dans `.env.local`. Créer 3 produits Stripe (test mode) avec recurring 49€/mois, 499€/an, one-time 2000€ et coller les `price_id`.
 
-### **Phase 3 — Restaurant & branding** (j10-12)
-- CRUD restaurants (1 par défaut à la signup, possibilité d'en ajouter)
-- Onboarding wizard : nom, adresse, téléphone, horaires, logo, couleur primaire
-- Upload logo/cover via R2 (signed URL)
-- Page settings/general
-- Slug unique généré à partir du nom
-- **Livrable** : owner peut configurer son resto, slug réservé.
+### **Phase 3 — Restaurant & branding** ✅ FAIT
+- ✅ Schema : table `restaurant_hours` (1 créneau par jour, 7 jours, isClosed flag)
+- ✅ Lib `src/lib/storage.ts` : client R2 lazy-init, `uploadToR2()` helper, validations type/taille
+- ✅ ENV R2 : 5 vars optionnelles (lazy-throw au runtime)
+- ✅ Layout `/dashboard/settings/*` avec nav latérale (Abonnement / Informations / Branding / Horaires) + active state via `usePathname`
+- ✅ `/dashboard/settings/general` : nom, description, adresse, code postal, ville, tél, email, toggle bilingue FR+EN
+- ✅ `/dashboard/settings/branding` : upload logo (carré) + cover (16/6) avec preview + bouton "Retirer", picker couleur primaire (hex)
+- ✅ `/dashboard/settings/hours` : 7 lignes lundi→dimanche, checkbox fermé, time pickers open/close, validation `close > open`, upsert transactionnel
+- ✅ Migration `0001_sour_masked_marvel.sql` générée
+- **Livrable** : owner peut configurer entièrement son resto. Settings UX propre avec sidebar.
+- **Note** : pour MVP, 1 créneau par jour. Services midi/soir distincts = V2.
 
 ### **Phase 4 — Menu builder** (j13-19)
 - CRUD menus (multiple par resto, ex midi/soir)

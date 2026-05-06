@@ -19,6 +19,13 @@ const envSchema = z.object({
   STRIPE_PRICE_MONTHLY: z.string().optional(),
   STRIPE_PRICE_ANNUAL: z.string().optional(),
   STRIPE_PRICE_LIFETIME: z.string().optional(),
+
+  // Cloudflare R2 — idem, optionnels et lazy (voir src/lib/storage.ts).
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_PUBLIC_URL: z.url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

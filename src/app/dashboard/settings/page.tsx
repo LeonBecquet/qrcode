@@ -25,16 +25,16 @@ export default async function SettingsPage() {
   const lifetimeDate = ctx.restaurant.lifetimePurchasedAt;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Réglages</h1>
-        <p className="text-muted-foreground mt-1">Votre abonnement et vos préférences.</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Abonnement</h1>
+        <p className="text-muted-foreground mt-1">Gérez votre formule et votre moyen de paiement.</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Abonnement</CardTitle>
-          <CardDescription>Gérez votre formule et votre moyen de paiement.</CardDescription>
+          <CardTitle>Formule</CardTitle>
+          <CardDescription>Détails de votre souscription Stripe.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {tier ? (
@@ -73,13 +73,6 @@ export default async function SettingsPage() {
             </form>
           </CardFooter>
         ) : null}
-      </Card>
-
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="text-base">Restaurant</CardTitle>
-          <CardDescription>Branding, horaires, équipe — Phase 3</CardDescription>
-        </CardHeader>
       </Card>
     </div>
   );

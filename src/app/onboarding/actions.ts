@@ -53,10 +53,19 @@ export async function createRestaurantAction(formData: FormData): Promise<Onboar
     slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
   }
 
+  // 14 jours d'essai gratuit pour tout nouveau resto
+  const TRIAL_DAYS = 14;
+  const trialEnd = new Date(Date.now() + TRIAL_DAYS * 24 * 3600 * 1000);
+
   await db.transaction(async (tx) => {
     const inserted = await tx
       .insert(restaurants)
-      .values({ slug, name: parsed.data.name })
+      .values({
+        slug,
+        name: parsed.data.name,
+        subStatus: "trialing",
+        currentPeriodEnd: trialEnd,
+      })
       .returning({ id: restaurants.id });
     const restaurant = inserted[0];
     if (!restaurant) {

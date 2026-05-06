@@ -61,7 +61,8 @@ export default function SignUpPage() {
               Démarrer votre restaurant
             </h1>
             <p className="text-muted-foreground text-sm">
-              Créez votre compte. Aucune carte bancaire pour l&apos;essai.
+              <strong className="text-[var(--brand-orange)]">14 jours d&apos;essai gratuit</strong>{" "}
+              · aucune carte bancaire requise.
             </p>
           </div>
 

@@ -51,6 +51,10 @@ export default async function OnboardingPage() {
           <p className="text-muted-foreground">
             Vous pourrez tout configurer ensuite : logo, horaires, menu, tables.
           </p>
+          <p className="text-muted-foreground text-xs">
+            ✨ <strong className="text-[var(--brand-orange)]">14 jours offerts</strong> dès la
+            création.
+          </p>
         </div>
 
         <OnboardingForm />

@@ -99,10 +99,10 @@ export function HeroContent() {
         className="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-xs md:justify-start"
       >
         <span className="flex items-center gap-1.5">
-          <span className="text-[var(--brand-forest)]">✓</span> Sans engagement
+          <span className="text-[var(--brand-forest)]">✓</span> 14 jours d&apos;essai gratuit
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="text-[var(--brand-forest)]">✓</span> Configuration en 5 min
+          <span className="text-[var(--brand-forest)]">✓</span> Sans engagement
         </span>
         <span className="flex items-center gap-1.5">
           <span className="text-[var(--brand-forest)]">✓</span> Support FR

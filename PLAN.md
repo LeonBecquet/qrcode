@@ -342,12 +342,15 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - ⏳ Vues différentes par rôle (staff_kitchen vs staff_waiter) → reporté, pour MVP tous voient tout
 - **Livrable** : staff ouvre `/dashboard/kitchen`, voit les commandes en temps réel, change leur statut, traite les appels serveur. Avec Pusher : instant. Sans : 8s.
 
-### **Phase 8 — Analytics resto** (j35-37)
-- Page `/dashboard/analytics`
-- KPIs jour/semaine/mois : nb commandes, CA estimé, ticket moyen, top items
-- Graph Recharts ou Tremor
-- Export CSV
-- **Livrable** : owner voit ses chiffres.
+### **Phase 8 — Analytics resto** ✅ FAIT
+- ✅ Lib `src/lib/server/analytics.ts` : `getRestaurantKpis` (today/week/month), `getTopItems` (group by name_snapshot), `getDailySeries` (30 jours, padded zero days)
+- ✅ Page `/dashboard/analytics` avec 3 cards KPIs (CA + nb commandes + ticket moyen)
+- ✅ `DailyChart` mini-bar chart 100% CSS (pas de dep recharts), tooltip natif via `title`
+- ✅ Top 10 plats sur 30 jours (quantité + revenue)
+- ✅ Endpoint `/api/analytics/export?days=30` : CSV avec BOM UTF-8 (Excel FR), séparateur `;`, format date FR
+- ✅ Lien "Stats" dans header dashboard
+- **Livrable** : owner voit ses KPIs jour/semaine/mois, top plats, courbe CA, et exporte tout en CSV.
+- **Note** : seules les commandes `served` sont comptées dans CA et ticket moyen — les annulations/brouillons sont ignorés.
 
 ### **Phase 9 — Admin plateforme** (j38-39)
 - Route `/admin` protégée par flag `is_platform_admin` sur user

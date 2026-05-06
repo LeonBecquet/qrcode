@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "./sign-out-button";
 import type { SubStatus } from "@/lib/db/schema";
+import { isPlatformAdmin } from "@/lib/server/admin";
 import { requireRestaurant } from "@/lib/server/session";
 
 const ALLOWED_SUB_STATUSES: SubStatus[] = ["active", "trialing", "past_due"];
@@ -13,6 +14,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/pricing");
   }
 
+  const showAdminLink = await isPlatformAdmin(ctx.user.id);
   const isPastDue = ctx.restaurant.subStatus === "past_due";
 
   return (
@@ -46,6 +48,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link href="/dashboard/settings" className="hover:underline">
               Réglages
             </Link>
+            {showAdminLink ? (
+              <Link
+                href="/admin"
+                className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-400"
+              >
+                Admin
+              </Link>
+            ) : null}
             <span className="text-muted-foreground hidden text-sm sm:inline">{ctx.user.email}</span>
             <SignOutButton />
           </nav>

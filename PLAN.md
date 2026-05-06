@@ -352,11 +352,15 @@ Chaque phase produit un livrable testable. On ne passe pas à la suivante sans v
 - **Livrable** : owner voit ses KPIs jour/semaine/mois, top plats, courbe CA, et exporte tout en CSV.
 - **Note** : seules les commandes `served` sont comptées dans CA et ticket moyen — les annulations/brouillons sont ignorés.
 
-### **Phase 9 — Admin plateforme** (j38-39)
-- Route `/admin` protégée par flag `is_platform_admin` sur user
-- Liste orgs + restos + status sub
-- MRR / ARR / churn calculés
-- **Livrable** : on peut piloter notre business.
+### **Phase 9 — Admin plateforme** ✅ FAIT
+- ✅ Helpers `isPlatformAdmin(userId)` + `requirePlatformAdmin()` (redirect `/dashboard` si pas admin)
+- ✅ Layout `/admin/*` distinct du dashboard avec badge "Internal" + retour vers son resto
+- ✅ Page `/admin` : 4 KPIs (MRR, ARR projeté, Lifetime revenue, total restos) calculés depuis `restaurants` (`monthlyActive × 49 + annualActive × 499/12`, etc. via `TIER_CONFIG`)
+- ✅ Banner d'alerte si retards de paiement ou annulations
+- ✅ Tableau complet des restos : nom + slug, owner (jointure memberships role=owner + user), tier, statut sub avec badge couleur, date inscription
+- ✅ Lien "Admin" conditionnel dans header dashboard (apparaît uniquement si `user.isPlatformAdmin`)
+- **Activation** : `UPDATE "user" SET "isPlatformAdmin" = true WHERE email = 'votre@email.fr';` — pas d'UI pour MVP, c'est interne
+- **Livrable** : on pilote notre MRR + voit qui paie quoi en un coup d'œil.
 
 ### **Phase 10 — Marketing & conformité FR** (j40-46)
 - Landing `/` : value prop, screenshots, témoignages (placeholder), pricing, FAQ, CTA

@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { TableDetailModal } from "./table-detail-modal";
 import { TableShape } from "./table-shape";
+import { ParquetBg, TilesBg } from "@/components/parquet-bg";
 import type { Table } from "@/lib/db/schema";
 
 type Props = {
@@ -97,22 +98,37 @@ export function FloorMap({ groups, scanUrls }: Props) {
         {groups.map((group, groupIdx) => {
           const zone = zoneFor(group.name);
           const activeCount = group.tables.filter((t) => t.isActive).length;
+          const isBarLike = group.name?.toLowerCase().includes("bar");
           return (
             <section
               key={group.name ?? "_none"}
-              className="relative overflow-hidden rounded-2xl border-2 border-dashed"
-              style={{
-                background:
-                  "repeating-linear-gradient(45deg, rgba(124,118,111,0.04) 0 1px, transparent 1px 24px), linear-gradient(135deg, oklch(0.96 0.018 85), oklch(0.93 0.025 88))",
-              }}
+              className="bg-card relative overflow-hidden rounded-3xl border shadow-sm"
             >
+              {/* Background parquet/tiles selon zone */}
+              <div className="pointer-events-none absolute inset-0">
+                {isBarLike ? (
+                  <TilesBg className="opacity-60" />
+                ) : (
+                  <ParquetBg className="opacity-40" />
+                )}
+                {/* Vignette douce sur les bords pour ambiance */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.06) 100%)",
+                  }}
+                />
+              </div>
+
               {/* Light beam qui drift */}
               {!prefersReduced ? (
                 <motion.div
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0"
                   style={{
-                    background: `radial-gradient(ellipse 40% 20% at 50% 50%, ${zone.color}25, transparent)`,
+                    background: `radial-gradient(ellipse 40% 25% at 50% 50%, ${zone.color}30, transparent 70%)`,
+                    mixBlendMode: "overlay",
                   }}
                   animate={{
                     x: ["-30%", "30%", "-30%"],
@@ -126,24 +142,24 @@ export function FloorMap({ groups, scanUrls }: Props) {
                 />
               ) : null}
 
-              {/* Decorative corner */}
+              {/* Decorative blob coloré */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -top-12 -right-12 size-32 rounded-full opacity-25 blur-3xl"
+                className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-20 blur-3xl"
                 style={{ background: zone.color }}
               />
 
               {/* Header de zone */}
-              <div className="bg-card/80 relative flex items-center justify-between gap-3 border-b px-5 py-3 backdrop-blur">
+              <div className="bg-card/95 relative flex items-center justify-between gap-3 border-b px-6 py-4 backdrop-blur">
                 <div className="flex items-center gap-3">
                   <span
-                    className="flex size-10 shrink-0 items-center justify-center rounded-xl text-xl shadow-sm"
-                    style={{ background: `${zone.color}25` }}
+                    className="flex size-11 shrink-0 items-center justify-center rounded-xl text-2xl shadow-sm ring-1 ring-black/5"
+                    style={{ background: `${zone.color}1f` }}
                   >
                     {zone.emoji}
                   </span>
                   <div>
-                    <h2 className="font-semibold tracking-tight">
+                    <h2 className="text-lg font-semibold tracking-tight">
                       {group.name ?? "Sans zone"}
                     </h2>
                     <p className="text-muted-foreground text-xs">
@@ -156,18 +172,8 @@ export function FloorMap({ groups, scanUrls }: Props) {
                 </div>
               </div>
 
-              {/* Plan : tables disposées */}
-              <div className="relative px-6 py-12">
-                {/* Lignes de plancher décoratives */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(90deg, transparent 0 119px, rgba(124,118,111,0.08) 119px 120px)",
-                  }}
-                />
-
+              {/* Plan : tables disposées sur le parquet */}
+              <div className="relative px-6 py-14 sm:px-10 sm:py-16">
                 {group.tables.length === 0 ? (
                   <p className="text-muted-foreground py-8 text-center text-sm">
                     Aucune table dans cette zone

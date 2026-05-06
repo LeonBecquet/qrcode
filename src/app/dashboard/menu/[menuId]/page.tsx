@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddCategoryForm } from "./add-category-form";
 import { CategoryHeader } from "./category-actions";
+import { CategoryPresets } from "./category-presets";
 import { ItemRowActions } from "./item-row-actions";
 import { MenuHeader } from "./menu-header";
 import { PhonePreview } from "./phone-preview";
@@ -114,43 +115,65 @@ export default async function MenuEditPage({ params }: { params: Promise<{ menuI
           />
         </div>
 
-        {/* Add category */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] flex size-10 items-center justify-center rounded-lg">
-                <FolderPlus className="size-5" />
-              </div>
-              <div>
-                <CardTitle className="text-base">Ajouter une catégorie</CardTitle>
-                <CardDescription>Entrées, Plats, Desserts, Boissons...</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <AddCategoryForm menuId={menu.id} bilingual={bilingual} />
-          </CardContent>
-        </Card>
-
         {categories.length === 0 ? (
-          <Card className="relative overflow-hidden border-dashed">
+          // Empty state riche : presets en haut + form en bas
+          <Card className="relative overflow-hidden">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-[var(--brand-orange)]/15 blur-3xl"
+              className="pointer-events-none absolute -top-20 -right-20 size-48 rounded-full bg-[var(--brand-orange)]/15 blur-3xl"
             />
-            <CardContent className="relative flex flex-col items-center gap-3 py-16 text-center">
-              <div className="bg-[var(--brand-saffron)]/30 text-[var(--brand-orange)] flex size-16 items-center justify-center rounded-2xl">
-                <UtensilsCrossed className="size-8" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-20 -left-20 size-48 rounded-full bg-[var(--brand-saffron)]/15 blur-3xl"
+            />
+            <CardHeader className="relative">
+              <div className="flex items-center gap-3">
+                <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] flex size-12 items-center justify-center rounded-xl">
+                  <UtensilsCrossed className="size-6" />
+                </div>
+                <div>
+                  <CardTitle>Construisez votre carte en quelques clics</CardTitle>
+                  <CardDescription>
+                    Choisissez un démarrage rapide pour pré-remplir les catégories.
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold">Commencez par une catégorie</p>
-                <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-                  Une catégorie regroupe vos plats (ex : Entrées, Plats, Desserts).
-                </p>
+            </CardHeader>
+            <CardContent className="relative space-y-6">
+              <CategoryPresets menuId={menu.id} bilingual={bilingual} />
+
+              <div className="flex items-center gap-3">
+                <div className="border-muted-foreground/20 h-px flex-1 border-t border-dashed" />
+                <span className="text-muted-foreground text-xs">ou créez à la main</span>
+                <div className="border-muted-foreground/20 h-px flex-1 border-t border-dashed" />
               </div>
+
+              <AddCategoryForm menuId={menu.id} bilingual={bilingual} />
             </CardContent>
           </Card>
         ) : (
+          <>
+            {/* Add category : compact quand il y a déjà des catégories */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] flex size-10 items-center justify-center rounded-lg">
+                    <FolderPlus className="size-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Ajouter une catégorie</CardTitle>
+                    <CardDescription>Entrées, Plats, Desserts, Boissons...</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <AddCategoryForm menuId={menu.id} bilingual={bilingual} />
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {categories.length > 0 && (
           <div className="space-y-6">
             {categories.map((category) => {
               const items = itemsByCategory.get(category.id) ?? [];

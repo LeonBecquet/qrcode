@@ -175,8 +175,16 @@ export default async function MenusPage() {
                           ))}
                         </ul>
                       ) : (
-                        <div className="text-muted-foreground bg-muted/30 rounded-md p-3 text-center text-xs">
-                          Aucun plat encore
+                        <div className="bg-gradient-to-br from-[var(--brand-saffron)]/15 to-[var(--brand-orange)]/10 border-[var(--brand-orange)]/20 rounded-lg border-2 border-dashed p-4 text-center">
+                          <div className="bg-[var(--brand-orange)]/15 text-[var(--brand-orange)] mx-auto mb-2 flex size-10 items-center justify-center rounded-full">
+                            <UtensilsCrossed className="size-5" />
+                          </div>
+                          <p className="text-foreground text-xs font-medium">
+                            Carte vide
+                          </p>
+                          <p className="text-muted-foreground mt-0.5 text-[10px]">
+                            Ajoutez vos premières catégories et plats
+                          </p>
                         </div>
                       )}
                       <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-3 text-xs">

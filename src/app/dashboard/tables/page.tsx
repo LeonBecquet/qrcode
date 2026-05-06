@@ -2,9 +2,10 @@ import { asc, eq } from "drizzle-orm";
 import { Printer, QrCode } from "lucide-react";
 import Link from "next/link";
 import { AddTableForms } from "./add-table-form";
+import { EmptyFloor } from "./empty-floor";
+import { QuickPresets } from "./quick-presets";
 import { TablesView } from "./tables-view";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/db/client";
 import { tables } from "@/lib/db/schema";
 import { buildTableUrl } from "@/lib/qr";
@@ -19,7 +20,6 @@ export default async function TablesPage() {
     .where(eq(tables.restaurantId, ctx.restaurant.id))
     .orderBy(asc(tables.sortOrder), asc(tables.createdAt));
 
-  // Group tables by groupName
   const groupsMap = new Map<string | null, typeof rows>();
   for (const row of rows) {
     const list = groupsMap.get(row.groupName) ?? [];
@@ -72,33 +72,22 @@ export default async function TablesPage() {
         ) : null}
       </div>
 
-      <AddTableForms />
-
       {rows.length === 0 ? (
-        <Card className="relative overflow-hidden border-dashed">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-[var(--brand-forest)]/15 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-12 -left-12 size-40 rounded-full bg-[var(--brand-orange)]/15 blur-3xl"
-          />
-          <CardContent className="relative flex flex-col items-center gap-3 py-12 text-center">
-            <div className="bg-[var(--brand-forest)]/15 text-[var(--brand-forest)] flex size-16 items-center justify-center rounded-2xl">
-              <QrCode className="size-8" />
-            </div>
-            <div>
-              <p className="font-semibold">Aucune table configurée</p>
-              <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-                Ajoutez une ou plusieurs tables ci-dessus, puis téléchargez le PDF des QR codes à
-                plastifier.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <>
+          <QuickPresets />
+          <div className="flex items-center gap-3">
+            <div className="border-muted-foreground/20 h-px flex-1 border-t border-dashed" />
+            <span className="text-muted-foreground text-xs">ou ajoutez manuellement</span>
+            <div className="border-muted-foreground/20 h-px flex-1 border-t border-dashed" />
+          </div>
+          <AddTableForms />
+          <EmptyFloor />
+        </>
       ) : (
-        <TablesView groups={groups} scanUrls={scanUrls} />
+        <>
+          <AddTableForms />
+          <TablesView groups={groups} scanUrls={scanUrls} />
+        </>
       )}
     </div>
   );

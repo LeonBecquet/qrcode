@@ -6,6 +6,35 @@ import * as schema from "@/lib/db/schema";
 import { sendEmail, welcomeEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 
+/**
+ * Origines autorisées pour CSRF.
+ * Couvre :
+ * - APP_URL (production / domaine custom)
+ * - VERCEL_URL (déploiement courant — change à chaque commit)
+ * - VERCEL_BRANCH_URL (URL stable par branche)
+ * - VERCEL_PROJECT_PRODUCTION_URL (alias prod stable)
+ * - localhost en dev
+ */
+function buildTrustedOrigins(): string[] {
+  const origins = new Set<string>([env.APP_URL]);
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) origins.add(`https://${vercelUrl}`);
+
+  const vercelBranchUrl = process.env.VERCEL_BRANCH_URL;
+  if (vercelBranchUrl) origins.add(`https://${vercelBranchUrl}`);
+
+  const vercelProdUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelProdUrl) origins.add(`https://${vercelProdUrl}`);
+
+  if (process.env.NODE_ENV !== "production") {
+    origins.add("http://localhost:3000");
+    origins.add("http://127.0.0.1:3000");
+  }
+
+  return Array.from(origins);
+}
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -40,7 +69,7 @@ export const auth = betterAuth({
   },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
-  trustedOrigins: [env.APP_URL],
+  trustedOrigins: buildTrustedOrigins(),
   plugins: [nextCookies()],
   databaseHooks: {
     user: {

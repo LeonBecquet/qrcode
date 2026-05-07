@@ -20,7 +20,13 @@ const envSchema = z.object({
   STRIPE_PRICE_ANNUAL: z.string().optional(),
   STRIPE_PRICE_LIFETIME: z.string().optional(),
 
-  // Cloudflare R2 — idem, optionnels et lazy (voir src/lib/storage.ts).
+  // Vercel Blob — stockage des images (logos, covers, photos plats).
+  // Auto-injecté par Vercel quand le store Blob est activé (Storage → Blob).
+  // Optionnel : sans, les uploads d'images throwent un message clair.
+  BLOB_READ_WRITE_TOKEN: z.string().optional(),
+
+  // Cloudflare R2 — legacy, conservé optionnellement pour rétrocompat.
+  // Le code utilise désormais Vercel Blob (voir src/lib/storage.ts).
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),

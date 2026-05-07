@@ -36,44 +36,26 @@ export default async function PublicTableLayout({
         ...(fontFamily ? { fontFamily } : {}),
       }}
     >
-      <header
-        className="sticky top-0 z-20 border-b backdrop-blur"
-        style={{
-          background: primary
-            ? `linear-gradient(180deg, ${primary}10, var(--background) 80%)`
-            : undefined,
-          borderColor: primary ? `${primary}25` : undefined,
-        }}
-      >
+      {/* Header — épuré, fond solide neutre, accent juste sur le filet du bas */}
+      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/85 sticky top-0 z-20 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           {restaurant.logoUrl ? (
-            <div
-              className="relative size-10 shrink-0 overflow-hidden rounded-full border-2"
-              style={{ borderColor: primary ?? "transparent" }}
-            >
+            <div className="relative size-9 shrink-0 overflow-hidden rounded-full border border-black/5">
               <Image
                 src={restaurant.logoUrl}
                 alt=""
                 fill
                 className="object-cover"
-                sizes="40px"
+                sizes="36px"
                 unoptimized
               />
             </div>
-          ) : primary ? (
-            <div
-              className="size-10 shrink-0 rounded-full"
-              style={{ background: primary }}
-            />
           ) : null}
           <div className="min-w-0 flex-1">
-            <h1
-              className="truncate text-base font-semibold"
-              style={primary ? { color: primary } : undefined}
-            >
+            <h1 className="text-foreground truncate text-sm font-semibold leading-tight">
               {restaurant.name}
             </h1>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground truncate text-[11px] leading-tight">
               Table <span className="font-mono">{table.label}</span>
               {table.groupName ? ` · ${table.groupName}` : ""}
             </p>
@@ -81,6 +63,16 @@ export default async function PublicTableLayout({
           {showLocaleSwitcher ? <LocaleSwitcher current={locale} /> : null}
           <CallWaiterButton slug={slug} token={token} />
         </div>
+        {/* Filet décoratif accent en bas du header */}
+        <div
+          aria-hidden="true"
+          className="h-px"
+          style={{
+            background: primary
+              ? `linear-gradient(90deg, transparent, ${primary}40, transparent)`
+              : "color-mix(in oklab, currentColor 10%, transparent)",
+          }}
+        />
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-32">{children}</main>
     </div>

@@ -1,8 +1,8 @@
 "use client";
 
+import { Bell, Check } from "lucide-react";
 import { useState, useTransition } from "react";
 import { callWaiterAction } from "./cart/actions";
-import { Button } from "@/components/ui/button";
 
 export function CallWaiterButton({ slug, token }: { slug: string; token: string }) {
   const [pending, startTransition] = useTransition();
@@ -21,15 +21,27 @@ export function CallWaiterButton({ slug, token }: { slug: string; token: string 
     });
   }
 
+  const sent = feedback === "sent";
+  const error = feedback === "error";
+
   return (
-    <Button
+    <button
       type="button"
-      size="sm"
-      variant="outline"
       onClick={handleClick}
-      disabled={pending || feedback === "sent"}
+      disabled={pending || sent}
+      className={`group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+        sent
+          ? "bg-emerald-500 border-emerald-500 text-white"
+          : error
+            ? "bg-destructive border-destructive text-white"
+            : "bg-card border-input hover:bg-[color-mix(in_oklab,var(--client-primary,currentColor)_8%,transparent)] hover:border-[color-mix(in_oklab,var(--client-primary,currentColor)_30%,transparent)]"
+      }`}
+      aria-label={sent ? "Demande envoyée" : "Appeler un serveur"}
     >
-      {feedback === "sent" ? "✓ Demandé" : feedback === "error" ? "Erreur" : "Appeler"}
-    </Button>
+      {sent ? <Check className="size-3.5" /> : <Bell className="size-3.5" />}
+      <span className="hidden sm:inline">
+        {sent ? "Envoyé" : error ? "Erreur" : "Appeler"}
+      </span>
+    </button>
   );
 }

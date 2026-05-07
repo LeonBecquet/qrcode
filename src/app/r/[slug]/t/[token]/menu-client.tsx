@@ -663,9 +663,9 @@ function ItemCard({
         className={`group block w-full ${!isAvailable ? "pointer-events-none opacity-50" : ""}`}
         aria-label={itemName}
       >
-        {/* Image full-width 85% avec mask reveal */}
+        {/* Image — responsive cap par breakpoint pour pas écraser sur desktop */}
         <div
-          className={`relative aspect-[4/5] w-[88%] overflow-hidden rounded-sm bg-stone-100 sm:aspect-[5/4] ${
+          className={`relative aspect-[4/5] w-[92%] max-w-[440px] overflow-hidden rounded-sm bg-stone-100 sm:aspect-[3/2] sm:w-[78%] sm:max-w-[560px] md:aspect-[16/10] md:w-[70%] md:max-w-[640px] ${
             isEven ? "ml-0" : "ml-auto"
           }`}
         >

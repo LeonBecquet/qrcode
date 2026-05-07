@@ -1,3 +1,4 @@
+import { Palette } from "lucide-react";
 import { ImageUploader } from "./image-uploader";
 import { ThemeForm } from "./theme-form";
 import {
@@ -15,9 +16,16 @@ export default async function BrandingSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Branding</h1>
-        <p className="text-muted-foreground mt-1">Logo, image de couverture et couleur.</p>
+      <div className="flex items-center gap-4">
+        <div className="bg-[var(--brand-tomato)]/15 text-[var(--brand-tomato)] flex size-12 items-center justify-center rounded-xl">
+          <Palette className="size-6" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Branding</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Logo, couverture et couleur d&apos;accent. Visible sur le menu client.
+          </p>
+        </div>
       </div>
 
       <Card>
@@ -45,8 +53,10 @@ export default async function BrandingSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Couleur</CardTitle>
-          <CardDescription>Personnalisez l&apos;accent de votre menu.</CardDescription>
+          <CardTitle>Couleur principale</CardTitle>
+          <CardDescription>
+            Pour des thèmes plus poussés, utilisez le drawer Design dans l&apos;éditeur de menu.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ThemeForm initialPrimary={primary} />

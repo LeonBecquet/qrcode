@@ -157,6 +157,103 @@ export function TableShape({ table, color, index, onClick }: Props) {
               opacity="0.7"
             />
 
+            {/* Dressage : assiette + couverts + verre + bougie ===== */}
+            {/* Set de table : sets en lin (carrés très fins) */}
+            <ellipse
+              cx="56"
+              cy="73"
+              rx="9"
+              ry="3.5"
+              fill="#FFFFFF"
+              opacity="0.35"
+            />
+            <ellipse
+              cx="86"
+              cy="73"
+              rx="8"
+              ry="3"
+              fill="#FFFFFF"
+              opacity="0.3"
+            />
+            {/* Couverts à gauche (fourchette + couteau) */}
+            <line
+              x1="49"
+              y1="71"
+              x2="50.5"
+              y2="76"
+              stroke="rgba(255,255,255,0.6)"
+              strokeWidth="0.6"
+              strokeLinecap="round"
+            />
+            <line
+              x1="62"
+              y1="71"
+              x2="63.5"
+              y2="76"
+              stroke="rgba(255,255,255,0.55)"
+              strokeWidth="0.6"
+              strokeLinecap="round"
+            />
+            {/* Assiette gauche */}
+            <ellipse cx="56" cy="73" rx="4.5" ry="1.8" fill="#FFFFFF" opacity="0.95" />
+            <ellipse cx="56" cy="73" rx="3" ry="1.1" fill="#F4EDE0" opacity="0.9" />
+            {/* Assiette droite */}
+            <ellipse cx="86" cy="73" rx="4" ry="1.5" fill="#FFFFFF" opacity="0.9" />
+            <ellipse cx="86" cy="73" rx="2.6" ry="0.95" fill="#F4EDE0" opacity="0.85" />
+            {/* Verre à vin (côté gauche supérieur de l'assiette) */}
+            <g opacity="0.85">
+              <ellipse cx="60" cy="68.5" rx="1.6" ry="0.6" fill="#7E2F2A" />
+              <path
+                d="M58.5 68.5 Q60 70.2 60 71.2 L60 72"
+                stroke="rgba(255,255,255,0.6)"
+                strokeWidth="0.5"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </g>
+            {/* Verre à vin droite */}
+            <g opacity="0.75">
+              <ellipse cx="89" cy="68.8" rx="1.3" ry="0.5" fill="#7E2F2A" />
+              <path
+                d="M88 68.8 Q89 70 89 70.8 L89 71.5"
+                stroke="rgba(255,255,255,0.55)"
+                strokeWidth="0.4"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </g>
+            {/* Petite bougie centrale */}
+            <g>
+              <ellipse cx="71" cy="71.5" rx="1.4" ry="0.5" fill="#5C3D1F" />
+              <rect x="70.4" y="69" width="1.2" height="2.5" fill="#F4EDE0" />
+              {/* Flamme */}
+              <ellipse
+                cx="71"
+                cy="68.4"
+                rx="0.5"
+                ry="1"
+                fill="#FFB347"
+                opacity="0.9"
+              >
+                {!prefersReduced ? (
+                  <animate
+                    attributeName="ry"
+                    values="0.8;1.1;0.8"
+                    dur="0.8s"
+                    repeatCount="indefinite"
+                  />
+                ) : null}
+              </ellipse>
+              <ellipse
+                cx="71"
+                cy="68"
+                rx="0.25"
+                ry="0.6"
+                fill="#FFE082"
+                opacity="0.9"
+              />
+            </g>
+
             {/* Shimmer effect au hover */}
             <ellipse
               cx="70"

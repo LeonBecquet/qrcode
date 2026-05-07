@@ -1,34 +1,11 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { buttonVariants } from "@/components/ui/button";
+import { MarketingNav } from "@/components/marketing-nav";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-background min-h-svh">
-      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-30 border-b backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" className="transition-opacity hover:opacity-80">
-            <Logo variant="full" size={28} />
-          </Link>
-          <nav className="flex items-center gap-3 text-sm">
-            <Link href="/#fonctionnalites" className="text-muted-foreground hidden hover:text-foreground sm:inline">
-              Fonctionnalités
-            </Link>
-            <Link href="/#tarifs" className="text-muted-foreground hidden hover:text-foreground sm:inline">
-              Tarifs
-            </Link>
-            <Link href="/#faq" className="text-muted-foreground hidden hover:text-foreground sm:inline">
-              FAQ
-            </Link>
-            <Link href="/signin" className="text-muted-foreground hover:text-foreground">
-              Se connecter
-            </Link>
-            <Link href="/signup" className={buttonVariants({ size: "sm" })}>
-              Commencer
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <MarketingNav />
       <main>{children}</main>
       <footer className="bg-muted/30 border-t">
         <div className="container mx-auto grid gap-6 px-4 py-12 md:grid-cols-4">

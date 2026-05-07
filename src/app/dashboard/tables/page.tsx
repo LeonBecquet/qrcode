@@ -1,14 +1,15 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, count, eq, gte } from "drizzle-orm";
 import { Printer, QrCode } from "lucide-react";
 import Link from "next/link";
 import { AddTableForms } from "./add-table-form";
 import { EmptyFloor } from "./empty-floor";
 import { QuickPresets } from "./quick-presets";
+import { TablesStats } from "./tables-stats";
 import { TablesView } from "./tables-view";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/lib/db/client";
-import { tables } from "@/lib/db/schema";
-import { buildTableUrl } from "@/lib/qr";
+import { orders, tables } from "@/lib/db/schema";
+import { buildTableUrl, generateQRDataURL } from "@/lib/qr";
 import { requireRestaurant } from "@/lib/server/session";
 
 export default async function TablesPage() {
@@ -34,12 +35,28 @@ export default async function TablesPage() {
     })
     .map(([name, ts]) => ({ name, tables: ts }));
 
+  // URLs scan + QR data URL réel pour chaque table (utilisé dans le modal détail)
   const scanUrls: Record<string, string> = {};
   for (const t of rows) {
     scanUrls[t.id] = buildTableUrl(ctx.restaurant.slug, t.token);
   }
 
+  const qrEntries = await Promise.all(
+    rows.map(async (t) => [t.id, await generateQRDataURL(scanUrls[t.id]!)] as const),
+  );
+  const qrDataUrls: Record<string, string> = Object.fromEntries(qrEntries);
+
   const totalActive = rows.filter((r) => r.isActive).length;
+
+  // Commandes des dernières 24h (proxy "scans aujourd'hui")
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const [{ c: ordersToday } = { c: 0 }] = await db
+    .select({ c: count() })
+    .from(orders)
+    .where(
+      and(eq(orders.restaurantId, ctx.restaurant.id), gte(orders.createdAt, startOfDay)),
+    );
 
   return (
     <div className="space-y-6">
@@ -85,8 +102,14 @@ export default async function TablesPage() {
         </>
       ) : (
         <>
+          <TablesStats
+            total={rows.length}
+            active={totalActive}
+            zones={groups.length}
+            scansToday={ordersToday}
+          />
           <AddTableForms />
-          <TablesView groups={groups} scanUrls={scanUrls} />
+          <TablesView groups={groups} scanUrls={scanUrls} qrDataUrls={qrDataUrls} />
         </>
       )}
     </div>

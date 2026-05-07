@@ -2,6 +2,8 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import {
+  Check,
+  Copy,
   ExternalLink,
   Power,
   Printer,
@@ -9,6 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -16,20 +19,21 @@ import {
   regenerateTableTokenAction,
   toggleTableActiveAction,
 } from "./actions";
-import { MiniQr } from "@/components/mini-qr";
 import { Button } from "@/components/ui/button";
 import type { Table } from "@/lib/db/schema";
 
 type Props = {
   table: Table | null;
   scanUrl: string;
+  qrDataUrl: string | null;
   accent: string;
   onClose: () => void;
 };
 
-export function TableDetailModal({ table, scanUrl, accent, onClose }: Props) {
+export function TableDetailModal({ table, scanUrl, qrDataUrl, accent, onClose }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // ESC pour fermer
   useEffect(() => {
@@ -84,6 +88,14 @@ export function TableDetailModal({ table, scanUrl, accent, onClose }: Props) {
       const result = await deleteTableAction(formData);
       if (result && "error" in result) setError(result.error);
       else onClose();
+    });
+  }
+
+  function handleCopy() {
+    if (!scanUrl) return;
+    navigator.clipboard.writeText(scanUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     });
   }
 
@@ -146,18 +158,36 @@ export function TableDetailModal({ table, scanUrl, accent, onClose }: Props) {
 
             {/* QR card en grand */}
             <div className="p-5">
-              <div className="bg-[var(--brand-cream)] mx-auto flex aspect-square w-full max-w-[260px] items-center justify-center rounded-xl border-2 border-dashed p-4">
-                <MiniQr
-                  token={table.token}
-                  size={220}
-                  color="var(--brand-forest)"
-                  accent={accent}
-                  bg="transparent"
-                />
+              <div
+                className="mx-auto flex aspect-square w-full max-w-[260px] items-center justify-center rounded-2xl border-2 p-4 shadow-inner"
+                style={{
+                  background: "var(--brand-cream)",
+                  borderColor: `${accent}40`,
+                }}
+              >
+                {qrDataUrl ? (
+                  <div className="relative size-full">
+                    <Image
+                      src={qrDataUrl}
+                      alt={`QR scannable de la table ${table.label}`}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center text-xs">
+                    QR indisponible
+                  </p>
+                )}
               </div>
 
-              {/* URL */}
-              <div className="bg-muted/40 mt-4 flex items-center gap-2 rounded-lg border p-2.5">
+              <p className="text-muted-foreground mt-3 text-center text-[11px]">
+                Scannable avec n&apos;importe quel téléphone — ouvre la table {table.label}.
+              </p>
+
+              {/* URL avec bouton copier */}
+              <div className="bg-muted/40 mt-3 flex items-center gap-2 rounded-lg border p-2.5">
                 <ExternalLink className="text-muted-foreground size-3.5 shrink-0" />
                 <Link
                   href={scanUrl}
@@ -168,6 +198,18 @@ export function TableDetailModal({ table, scanUrl, accent, onClose }: Props) {
                 >
                   {scanUrl}
                 </Link>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="hover:bg-background shrink-0 rounded p-1 transition-colors"
+                  aria-label="Copier l'URL"
+                >
+                  {copied ? (
+                    <Check className="size-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="text-muted-foreground size-3.5" />
+                  )}
+                </button>
               </div>
 
               {/* Actions principales */}

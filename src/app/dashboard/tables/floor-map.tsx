@@ -10,6 +10,7 @@ import type { Table } from "@/lib/db/schema";
 type Props = {
   groups: { name: string | null; tables: Table[] }[];
   scanUrls: Record<string, string>;
+  qrDataUrls: Record<string, string>;
 };
 
 const ZONES = [
@@ -41,7 +42,7 @@ const SIM_EVENTS = [
   { type: "call", label: "appelle un serveur", emoji: "🔔", color: "var(--brand-tomato)" },
 ] as const;
 
-export function FloorMap({ groups, scanUrls }: Props) {
+export function FloorMap({ groups, scanUrls, qrDataUrls }: Props) {
   const prefersReduced = useReducedMotion();
   const [selected, setSelected] = useState<Table | null>(null);
   const [pulse, setPulse] = useState<{
@@ -266,6 +267,7 @@ export function FloorMap({ groups, scanUrls }: Props) {
       <TableDetailModal
         table={selected}
         scanUrl={selected ? (scanUrls[selected.id] ?? "") : ""}
+        qrDataUrl={selected ? (qrDataUrls[selected.id] ?? null) : null}
         accent={selectedZone?.color ?? "#EE8033"}
         onClose={() => setSelected(null)}
       />

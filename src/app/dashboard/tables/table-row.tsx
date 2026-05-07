@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
@@ -13,7 +14,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Table } from "@/lib/db/schema";
 
-export function TableRow({ table, scanUrl }: { table: Table; scanUrl: string }) {
+export function TableRow({
+  table,
+  scanUrl,
+  qrDataUrl,
+}: {
+  table: Table;
+  scanUrl: string;
+  qrDataUrl?: string;
+}) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -107,15 +116,26 @@ export function TableRow({ table, scanUrl }: { table: Table; scanUrl: string }) 
         !table.isActive ? "opacity-60" : ""
       }`}
     >
-      {/* Mini QR visuel */}
-      <div className="bg-[var(--brand-cream)] flex size-12 shrink-0 items-center justify-center rounded-lg border shadow-sm">
-        <MiniQr
-          token={table.token}
-          size={44}
-          color="var(--brand-forest)"
-          accent="var(--brand-orange)"
-          bg="transparent"
-        />
+      {/* Mini QR (vrai si dispo, sinon décoratif) */}
+      <div className="bg-[var(--brand-cream)] relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border p-1 shadow-sm">
+        {qrDataUrl ? (
+          <Image
+            src={qrDataUrl}
+            alt=""
+            fill
+            className="object-contain p-1"
+            sizes="48px"
+            unoptimized
+          />
+        ) : (
+          <MiniQr
+            token={table.token}
+            size={44}
+            color="var(--brand-forest)"
+            accent="var(--brand-orange)"
+            bg="transparent"
+          />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">

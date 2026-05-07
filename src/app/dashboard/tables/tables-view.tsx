@@ -16,9 +16,10 @@ import type { Table } from "@/lib/db/schema";
 type Props = {
   groups: { name: string | null; tables: Table[] }[];
   scanUrls: Record<string, string>;
+  qrDataUrls: Record<string, string>;
 };
 
-export function TablesView({ groups, scanUrls }: Props) {
+export function TablesView({ groups, scanUrls, qrDataUrls }: Props) {
   const [view, setView] = useState<TablesView>("grid");
 
   return (
@@ -28,7 +29,7 @@ export function TablesView({ groups, scanUrls }: Props) {
       </div>
 
       {view === "grid" ? (
-        <FloorMap groups={groups} scanUrls={scanUrls} />
+        <FloorMap groups={groups} scanUrls={scanUrls} qrDataUrls={qrDataUrls} />
       ) : (
         <div className="space-y-6">
           {groups.map((group) => (
@@ -52,6 +53,7 @@ export function TablesView({ groups, scanUrls }: Props) {
                       key={table.id}
                       table={table}
                       scanUrl={scanUrls[table.id] ?? ""}
+                      qrDataUrl={qrDataUrls[table.id]}
                     />
                   ))}
                 </ul>

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import { RestaurantAmbient } from "./restaurant-ambient";
 import { TableDetailModal } from "./table-detail-modal";
 import { TableShape } from "./table-shape";
 import { ParquetBg, TilesBg } from "@/components/parquet-bg";
@@ -173,14 +174,17 @@ export function FloorMap({ groups, scanUrls, qrDataUrls }: Props) {
                 </div>
               </div>
 
-              {/* Plan : tables disposées sur le parquet */}
-              <div className="relative px-6 py-14 sm:px-10 sm:py-16">
+              {/* Plan : scène restaurant avec ambiance */}
+              <div className="relative min-h-[440px] overflow-hidden px-6 pt-16 pb-20 sm:px-12 sm:pt-20 sm:pb-24">
+                {/* Ambiance : entrée, cuisine, plantes, fenêtre, cadre mural */}
+                <RestaurantAmbient zoneColor={zone.color} isBarLike={!!isBarLike} />
+
                 {group.tables.length === 0 ? (
-                  <p className="text-muted-foreground py-8 text-center text-sm">
+                  <p className="text-muted-foreground relative z-[1] py-8 text-center text-sm">
                     Aucune table dans cette zone
                   </p>
                 ) : (
-                  <div className="relative grid place-items-center gap-x-8 gap-y-12 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  <div className="relative z-[1] flex flex-wrap items-center justify-center gap-x-10 gap-y-14 sm:gap-x-14 sm:gap-y-16">
                     {group.tables.map((table, idx) => {
                       const isPulsing = pulse?.tableId === table.id;
                       return (

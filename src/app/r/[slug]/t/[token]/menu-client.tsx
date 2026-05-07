@@ -2,7 +2,6 @@
 
 import {
   motion,
-  useMotionValue,
   useReducedMotion,
   useScroll,
   useSpring,
@@ -35,24 +34,7 @@ function pickLocalizedDescription<
   return item.descriptionFr;
 }
 
-const ALLERGEN_INITIALS: Record<string, string> = {
-  gluten: "G",
-  crustaces: "Cr",
-  oeufs: "Œ",
-  poisson: "P",
-  arachide: "Ar",
-  soja: "So",
-  lait: "L",
-  "fruits-coque": "FC",
-  celeri: "Cé",
-  moutarde: "Mo",
-  sesame: "Sé",
-  sulfites: "Su",
-  lupin: "Lu",
-  mollusques: "Mol",
-};
-
-const ALLERGEN_FULL: Record<string, { fr: string; en: string }> = {
+const ALLERGEN_LABEL: Record<string, { fr: string; en: string }> = {
   gluten: { fr: "Gluten", en: "Gluten" },
   crustaces: { fr: "Crustacés", en: "Crustaceans" },
   oeufs: { fr: "Œufs", en: "Eggs" },
@@ -76,10 +58,11 @@ type Props = {
   restaurantName: string;
   restaurantDescription: string | null;
   coverUrl: string | null;
+  logoUrl: string | null;
   publicMenu: PublicMenu | null;
 };
 
-const EASE: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export function MenuClient({
   slug,
@@ -88,6 +71,7 @@ export function MenuClient({
   restaurantName,
   restaurantDescription,
   coverUrl,
+  logoUrl,
   publicMenu,
 }: Props) {
   const prefersReduced = useReducedMotion();
@@ -99,14 +83,21 @@ export function MenuClient({
     visibleCategories[0]?.id ?? null,
   );
 
-  /* Scroll progress bar globale en haut */
-  const { scrollYProgress } = useScroll();
-  const scrollProgress = useSpring(scrollYProgress, {
+  /* ─── Hero parallax & opacity ─── */
+  const { scrollY, scrollYProgress } = useScroll();
+  const heroY = useTransform(scrollY, [0, 600], [0, 200]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 1.12]);
+  const heroOpacity = useTransform(scrollY, [0, 400, 600], [1, 0.5, 0]);
+  const heroTextY = useTransform(scrollY, [0, 400], [0, -80]);
+
+  /* Top progress bar */
+  const progress = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001,
   });
 
+  /* IntersectionObserver pour la pastille active */
   useEffect(() => {
     if (visibleCategories.length === 0) return;
     const observer = new IntersectionObserver(
@@ -119,10 +110,7 @@ export function MenuClient({
           if (id) setActiveCatId(id);
         }
       },
-      {
-        rootMargin: "-130px 0px -60% 0px",
-        threshold: [0, 0.1, 0.25],
-      },
+      { rootMargin: "-20% 0px -70% 0px", threshold: [0, 0.1, 0.3] },
     );
     for (const cat of visibleCategories) {
       const el = document.querySelector(`[data-cat-id="${cat.id}"]`);
@@ -132,82 +120,92 @@ export function MenuClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicMenu?.menu.id]);
 
+  /* Empty state */
   if (!publicMenu || publicMenu.categories.length === 0) {
     return (
       <div className="-mx-4">
         {coverUrl ? (
-          <CoverHero
+          <Hero
             coverUrl={coverUrl}
+            logoUrl={logoUrl}
             name={restaurantName}
             description={restaurantDescription}
+            locale={locale}
+            heroY={heroY}
+            heroScale={heroScale}
+            heroOpacity={heroOpacity}
+            heroTextY={heroTextY}
             prefersReduced={!!prefersReduced}
           />
-        ) : null}
-        <div className="px-4 py-16 text-center">
+        ) : (
+          <NoCoverHero name={restaurantName} description={restaurantDescription} />
+        )}
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.2 }}
+          className="px-4 py-20 text-center"
+        >
           <p className="text-3xl">🍽️</p>
           <p className="mt-3 text-lg font-medium">
             {locale === "en" ? "Menu coming soon" : "Carte en préparation"}
           </p>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {locale === "en"
-              ? "The chef is finalising the dishes."
-              : "Le chef finalise les plats."}
-          </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
     <>
-      {/* Scroll progress bar fixée en haut de l'écran */}
+      {/* Scroll progress bar */}
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-30 h-0.5 origin-left"
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 h-[2px] origin-left"
         style={{
-          scaleX: scrollProgress,
+          scaleX: progress,
           background:
-            "linear-gradient(90deg, var(--client-primary, currentColor), var(--client-accent-2, currentColor))",
+            "linear-gradient(90deg, var(--client-primary, currentColor), var(--client-accent-2, var(--client-primary, currentColor)))",
         }}
       />
 
-      {/* === Cover hero cinématique === */}
-      {coverUrl ? (
-        <div className="-mx-4">
-          <CoverHero
+      {/* === HERO CINEMATIC === */}
+      <div className="-mx-4">
+        {coverUrl ? (
+          <Hero
             coverUrl={coverUrl}
+            logoUrl={logoUrl}
             name={restaurantName}
             description={restaurantDescription}
+            locale={locale}
+            heroY={heroY}
+            heroScale={heroScale}
+            heroOpacity={heroOpacity}
+            heroTextY={heroTextY}
             prefersReduced={!!prefersReduced}
           />
-        </div>
-      ) : (
-        <NoCoverHero
-          name={restaurantName}
-          description={restaurantDescription}
-          prefersReduced={!!prefersReduced}
-        />
-      )}
+        ) : (
+          <NoCoverHero name={restaurantName} description={restaurantDescription} />
+        )}
+      </div>
 
-      {/* === Sticky pills nav === */}
+      {/* === LIQUID STICKY NAV === */}
       {hasMultipleCategories ? (
         <motion.nav
           initial={prefersReduced ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE, delay: 0.6 }}
-          className="bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-[60px] z-10 -mx-4 mt-4 backdrop-blur"
+          transition={{ duration: 0.6, ease: EASE, delay: 0.3 }}
+          className="bg-background/70 supports-[backdrop-filter]:bg-background/55 sticky top-0 z-30 -mx-4 border-b border-black/5 backdrop-blur-2xl"
           aria-label={locale === "en" ? "Categories" : "Catégories"}
         >
-          <div className="overflow-x-auto">
-            <ul className="flex gap-1 px-4 py-3 whitespace-nowrap">
+          <div className="no-scrollbar overflow-x-auto">
+            <ul className="flex gap-7 px-6 py-4 whitespace-nowrap">
               {visibleCategories.map((cat) => {
                 const isActive = activeCatId === cat.id;
                 return (
                   <li key={cat.id} className="relative">
-                    <a
-                      href={`#cat-${cat.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
+                    <button
+                      type="button"
+                      onClick={() => {
                         const target = document.getElementById(`cat-${cat.id}`);
                         if (target) {
                           target.scrollIntoView({
@@ -216,31 +214,25 @@ export function MenuClient({
                           });
                         }
                       }}
-                      className={`relative inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm transition-colors ${
-                        isActive
-                          ? "text-foreground font-semibold"
-                          : "text-foreground/60 hover:text-foreground"
+                      className={`relative text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300 ${
+                        isActive ? "text-foreground" : "text-foreground/40"
                       }`}
                     >
+                      {pickLocalizedText(cat, locale)}
                       {isActive ? (
                         <motion.span
-                          layoutId="active-pill-bg"
-                          className="absolute inset-0 rounded-full"
-                          style={{
-                            background:
-                              "color-mix(in oklab, var(--client-primary, currentColor) 14%, transparent)",
-                          }}
+                          layoutId="active-cat-pill"
+                          aria-hidden="true"
+                          className="absolute -bottom-1.5 left-0 right-0 h-[2px] rounded-full"
+                          style={{ background: "var(--client-primary, currentColor)" }}
                           transition={{
                             type: "spring",
-                            stiffness: 380,
-                            damping: 32,
+                            stiffness: 400,
+                            damping: 30,
                           }}
                         />
                       ) : null}
-                      <span className="relative">
-                        {pickLocalizedText(cat, locale)}
-                      </span>
-                    </a>
+                    </button>
                   </li>
                 );
               })}
@@ -249,8 +241,8 @@ export function MenuClient({
         </motion.nav>
       ) : null}
 
-      {/* === Sections === */}
-      <div className="space-y-20 py-10">
+      {/* === MENU EDITORIAL === */}
+      <main className="space-y-24 px-2 py-16 sm:px-6">
         {visibleCategories.map((category, catIdx) => {
           const catName = pickLocalizedText(category, locale);
           const catDesc = pickLocalizedDescription(category, locale);
@@ -259,21 +251,48 @@ export function MenuClient({
               key={category.id}
               id={`cat-${category.id}`}
               data-cat-id={category.id}
-              className="scroll-mt-32"
+              className="scroll-mt-24 space-y-12"
             >
-              <SectionHeader
-                title={catName}
-                description={catDesc}
-                index={catIdx}
-                prefersReduced={!!prefersReduced}
-              />
+              {/* Section title — éditorial, ancré à gauche */}
+              <motion.header
+                initial={prefersReduced ? false : { opacity: 0, x: -24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-15%" }}
+                transition={{ duration: 0.9, ease: EASE }}
+                className="px-2"
+              >
+                <p className="text-foreground/50 text-[10px] font-bold tracking-[0.4em] uppercase">
+                  {locale === "en" ? "Chapter" : "Chapitre"}{" "}
+                  {String(catIdx + 1).padStart(2, "0")}
+                </p>
+                <h2
+                  className="mt-2 text-4xl leading-[0.95] font-bold tracking-tighter sm:text-5xl"
+                  style={{ color: "var(--client-primary, currentColor)" }}
+                >
+                  {catName}
+                </h2>
+                {catDesc ? (
+                  <p className="text-foreground/60 mt-3 max-w-md text-sm italic">
+                    {catDesc}
+                  </p>
+                ) : null}
+                <div
+                  aria-hidden="true"
+                  className="mt-5 h-px w-12"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, var(--client-primary, currentColor), transparent)",
+                  }}
+                />
+              </motion.header>
 
-              <ul className="space-y-6">
+              {/* Items — alternance gauche/droite */}
+              <ul className="space-y-16">
                 {category.items.map((item, idx) => {
                   const itemName = pickLocalizedText(item, locale);
                   const itemDesc = pickLocalizedDescription(item, locale);
                   return (
-                    <ItemRow
+                    <ItemCard
                       key={item.id}
                       slug={slug}
                       token={token}
@@ -286,7 +305,7 @@ export function MenuClient({
                       isAvailable={item.isAvailable}
                       allergens={item.allergens ?? []}
                       optionsCount={item.options.length}
-                      delay={idx * 0.08}
+                      isEven={idx % 2 === 0}
                       prefersReduced={!!prefersReduced}
                     />
                   );
@@ -295,70 +314,97 @@ export function MenuClient({
             </section>
           );
         })}
-      </div>
+      </main>
 
-      <motion.div
+      {/* === SIGNATURE FOOTER === */}
+      <motion.footer
         initial={prefersReduced ? false : { opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.7, ease: EASE }}
-        className="border-t pt-6 pb-2 text-center"
+        transition={{ duration: 1, ease: EASE }}
+        className="border-t border-black/5 px-6 py-16 text-center"
       >
-        <p className="text-muted-foreground/70 text-[10px] tracking-wide uppercase">
-          {locale === "en" ? "Allergens code" : "Codes allergènes"}
+        {logoUrl ? (
+          <div className="relative mx-auto mb-4 size-12 overflow-hidden rounded-full opacity-60">
+            <Image
+              src={logoUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="48px"
+              unoptimized
+            />
+          </div>
+        ) : null}
+        <p
+          className="text-2xl leading-tight font-semibold tracking-tight"
+          style={{ color: "var(--client-primary, currentColor)" }}
+        >
+          {restaurantName}
         </p>
-        <p className="text-muted-foreground mt-2 text-xs">
-          {Object.entries(ALLERGEN_FULL)
-            .map(
-              ([key, val]) =>
-                `${ALLERGEN_INITIALS[key]} · ${locale === "en" ? val.en : val.fr}`,
-            )
-            .slice(0, 7)
-            .join("   ")}
+        <p className="text-foreground/50 mt-2 text-xs tracking-wider uppercase">
+          {locale === "en"
+            ? "Bon appétit — A taste of the house"
+            : "Bon appétit — la signature de la maison"}
         </p>
-      </motion.div>
+        <div
+          aria-hidden="true"
+          className="mx-auto mt-6 h-px w-12"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, color-mix(in oklab, var(--client-primary, currentColor) 60%, transparent), transparent)",
+          }}
+        />
+        <p className="text-foreground/35 mt-4 text-[10px] tracking-wider uppercase">
+          {locale === "en"
+            ? "Allergens indicated below each dish · ask the server for any need"
+            : "Allergènes sous chaque plat · serveur disponible sur demande"}
+        </p>
+      </motion.footer>
     </>
   );
 }
 
-/* ─── Cover hero CINÉMATIQUE ─── */
-function CoverHero({
+/* ─── HERO CINEMATIC FULL-BLEED ─── */
+function Hero({
   coverUrl,
+  logoUrl,
   name,
   description,
+  locale,
+  heroY,
+  heroScale,
+  heroOpacity,
+  heroTextY,
   prefersReduced,
 }: {
   coverUrl: string;
+  logoUrl: string | null;
   name: string;
   description: string | null;
+  locale: PublicLocale;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  heroY: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  heroScale: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  heroOpacity: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  heroTextY: any;
   prefersReduced: boolean;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
-  const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const titleY = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [1, 1, 0]);
-  const overlayOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.4]);
-
-  // Letter-by-letter animation
-  const letters = name.split("");
-
   return (
-    <div
-      ref={ref}
-      className="relative h-[78vh] min-h-[480px] w-full overflow-hidden sm:h-[88vh]"
+    <motion.section
+      className="relative flex h-[100dvh] min-h-[560px] w-full items-end overflow-hidden px-6 pb-14 sm:pb-16"
+      style={prefersReduced ? undefined : { opacity: heroOpacity }}
     >
-      {/* === Background image with parallax === */}
+      {/* Image (parallax) */}
       <motion.div
-        className="absolute inset-0"
-        style={prefersReduced ? undefined : { y: imgY, scale: imgScale }}
-        initial={prefersReduced ? false : { scale: 1.1, opacity: 0 }}
+        className="absolute inset-0 z-0"
+        style={prefersReduced ? undefined : { y: heroY, scale: heroScale }}
+        initial={prefersReduced ? false : { scale: 1.15, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.4, ease: EASE }}
+        transition={{ duration: 1.6, ease: EASE }}
       >
         <Image
           src={coverUrl}
@@ -369,455 +415,203 @@ function CoverHero({
           sizes="100vw"
           unoptimized
         />
-      </motion.div>
-
-      {/* === Vignette + dark overlay === */}
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: overlayOpacity }}
-      >
+        {/* Triple gradient pour profondeur cinématique */}
         <div
+          aria-hidden="true"
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.85) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.85) 100%)",
           }}
         />
       </motion.div>
 
-      {/* === Floating particles (steam-like) === */}
-      {!prefersReduced ? <FloatingParticles /> : null}
-
-      {/* === Decorative SVG corners === */}
-      <CornerOrnaments />
-
-      {/* === Title content === */}
+      {/* Content (parallax up + fade) */}
       <motion.div
-        className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
-        style={prefersReduced ? undefined : { y: titleY, opacity: titleOpacity }}
+        className="relative z-10 w-full max-w-2xl"
+        style={prefersReduced ? undefined : { y: heroTextY }}
       >
-        {/* Tagline en haut */}
+        {/* Logo */}
+        {logoUrl ? (
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: EASE, delay: 0.2 }}
+            className="relative mb-7 size-14 overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10"
+          >
+            <Image
+              src={logoUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="56px"
+              unoptimized
+            />
+          </motion.div>
+        ) : null}
+
+        {/* Pre-tagline */}
         <motion.p
-          initial={prefersReduced ? false : { opacity: 0, y: 10 }}
+          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE, delay: 0.5 }}
-          className="mb-4 text-[10px] font-semibold tracking-[0.5em] text-white/70 uppercase sm:text-xs"
+          transition={{ duration: 0.8, ease: EASE, delay: 0.3 }}
+          className="mb-3 text-[10px] font-bold tracking-[0.5em] text-white/70 uppercase sm:text-[11px]"
         >
-          {locale_text({ fr: "Bienvenue à la table de", en: "Welcome to" })}
+          {locale === "en" ? "Welcome to" : "Bienvenue à la table de"}
         </motion.p>
 
-        {/* Nom du resto - lettres animées */}
+        {/* Restaurant name */}
         <h1
-          className="text-5xl leading-none font-bold tracking-tight text-white sm:text-7xl md:text-8xl"
-          style={{ textShadow: "0 4px 30px rgba(0,0,0,0.3)" }}
+          className="text-5xl leading-[0.92] font-bold tracking-tight text-white sm:text-7xl"
+          style={{ textShadow: "0 8px 40px rgba(0,0,0,0.45)" }}
         >
-          {letters.map((char, i) => (
-            <motion.span
-              key={i}
-              initial={prefersReduced ? false : { opacity: 0, y: 80, filter: "blur(20px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{
-                duration: 0.9,
-                ease: EASE,
-                delay: 0.8 + i * 0.05,
-              }}
-              className="inline-block"
-            >
-              {char === " " ? " " : char}
-            </motion.span>
+          {name.split(" ").map((word, wi) => (
+            <span key={wi} className="inline-block overflow-hidden align-baseline">
+              <motion.span
+                initial={prefersReduced ? false : { y: "100%" }}
+                animate={{ y: "0%" }}
+                transition={{
+                  duration: 1.1,
+                  ease: EASE,
+                  delay: 0.5 + wi * 0.08,
+                }}
+                className="inline-block"
+              >
+                {word}
+                {wi < name.split(" ").length - 1 ? " " : ""}
+              </motion.span>
+            </span>
           ))}
         </h1>
 
-        {/* Filet décoratif animé */}
+        {/* Filet décoratif */}
         <motion.div
           aria-hidden="true"
           initial={prefersReduced ? false : { width: 0, opacity: 0 }}
-          animate={{ width: 80, opacity: 1 }}
-          transition={{ duration: 1, ease: EASE, delay: 1.2 + letters.length * 0.05 }}
-          className="my-6 h-px bg-white/60"
+          animate={{ width: 64, opacity: 1 }}
+          transition={{
+            duration: 1,
+            ease: EASE,
+            delay: 0.7 + name.split(" ").length * 0.08,
+          }}
+          className="my-6 h-px bg-white/70"
         />
 
         {/* Description */}
         {description ? (
           <motion.p
-            initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+            initial={prefersReduced ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.8,
+              duration: 0.9,
               ease: EASE,
-              delay: 1.4 + letters.length * 0.05,
+              delay: 0.9 + name.split(" ").length * 0.08,
             }}
-            className="max-w-md text-sm text-white/85 italic sm:text-base"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+            className="max-w-md text-base font-light text-white/85 italic sm:text-lg"
+            style={{ textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
           >
             {description}
           </motion.p>
         ) : null}
-
-        {/* Scroll indicator */}
-        {!prefersReduced ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 2 + letters.length * 0.05 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="flex flex-col items-center gap-1.5 text-white/60"
-            >
-              <span className="text-[10px] font-semibold tracking-[0.3em] uppercase">
-                Scroll
-              </span>
-              <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
-                <rect
-                  x="1"
-                  y="1"
-                  width="14"
-                  height="18"
-                  rx="7"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <motion.circle
-                  cx="8"
-                  cy="6"
-                  r="1.5"
-                  fill="currentColor"
-                  animate={{ cy: [6, 12, 6] }}
-                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </svg>
-            </motion.div>
-          </motion.div>
-        ) : null}
       </motion.div>
-    </div>
+
+      {/* Scroll indicator */}
+      {!prefersReduced ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: 0.6,
+            delay: 1.5 + name.split(" ").length * 0.08,
+          }}
+          className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2"
+        >
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="flex flex-col items-center gap-1.5"
+          >
+            <span className="text-[10px] font-semibold tracking-[0.4em] text-white/60 uppercase">
+              {locale === "en" ? "Scroll" : "Découvrir"}
+            </span>
+            <svg width="16" height="22" viewBox="0 0 16 22" fill="none">
+              <rect
+                x="1"
+                y="1"
+                width="14"
+                height="20"
+                rx="7"
+                stroke="rgba(255,255,255,0.6)"
+                strokeWidth="1.5"
+              />
+              <motion.circle
+                cx="8"
+                cy="7"
+                r="1.5"
+                fill="rgba(255,255,255,0.85)"
+                animate={{ cy: [7, 14, 7] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </svg>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </motion.section>
   );
 }
 
-/* ─── No-cover hero (fallback minimaliste mais classe) ─── */
+/* ─── NO-COVER HERO ─── */
 function NoCoverHero({
   name,
   description,
-  prefersReduced,
 }: {
   name: string;
   description: string | null;
-  prefersReduced: boolean;
 }) {
-  const letters = name.split("");
   return (
-    <div className="relative -mx-4 flex min-h-[60vh] flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
+    <section className="relative -mx-4 flex min-h-[60vh] flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
       {/* Background gradient mesh */}
-      {!prefersReduced ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 60% 50% at 50% 30%, color-mix(in oklab, var(--client-primary, currentColor) 12%, transparent), transparent), radial-gradient(ellipse 40% 30% at 80% 70%, color-mix(in oklab, var(--client-accent-2, currentColor) 10%, transparent), transparent)",
-          }}
-        />
-      ) : null}
-
-      {!prefersReduced ? <FloatingDots /> : null}
-
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 30%, color-mix(in oklab, var(--client-primary, currentColor) 12%, transparent), transparent), radial-gradient(ellipse 40% 30% at 80% 70%, color-mix(in oklab, var(--client-accent-2, currentColor) 8%, transparent), transparent)",
+        }}
+      />
       <motion.p
-        initial={prefersReduced ? false : { opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: EASE, delay: 0.3 }}
-        className="text-muted-foreground mb-3 text-[10px] font-semibold tracking-[0.5em] uppercase sm:text-xs"
+        className="text-foreground/50 mb-3 text-[11px] font-bold tracking-[0.5em] uppercase"
       >
         Bienvenue
       </motion.p>
-
-      <h1
-        className="text-5xl leading-none font-bold tracking-tight sm:text-7xl"
+      <motion.h1
+        initial={{ opacity: 0, y: 24, filter: "blur(20px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 1.1, ease: EASE, delay: 0.4 }}
+        className="text-5xl leading-tight font-bold tracking-tight sm:text-7xl"
         style={{ color: "var(--client-primary, currentColor)" }}
       >
-        {letters.map((char, i) => (
-          <motion.span
-            key={i}
-            initial={prefersReduced ? false : { opacity: 0, y: 60, filter: "blur(15px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.9, ease: EASE, delay: 0.6 + i * 0.05 }}
-            className="inline-block"
-          >
-            {char === " " ? " " : char}
-          </motion.span>
-        ))}
-      </h1>
-
-      <motion.div
-        initial={prefersReduced ? false : { width: 0 }}
-        animate={{ width: 80 }}
-        transition={{ duration: 1, ease: EASE, delay: 1 + letters.length * 0.05 }}
-        className="my-6 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, color-mix(in oklab, var(--client-primary, currentColor) 60%, transparent), transparent)",
-        }}
-      />
-
+        {name}
+      </motion.h1>
       {description ? (
         <motion.p
-          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE, delay: 1.2 + letters.length * 0.05 }}
-          className="text-muted-foreground max-w-md text-sm italic sm:text-base"
+          transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
+          className="text-foreground/60 mt-6 max-w-md text-base italic sm:text-lg"
         >
           {description}
         </motion.p>
       ) : null}
-    </div>
+    </section>
   );
 }
 
-/* ─── Particules flottantes (style fumée/poussière de lumière) ─── */
-function FloatingParticles() {
-  const [particles] = useState(() =>
-    Array.from({ length: 18 }, () => ({
-      size: 1 + Math.random() * 3,
-      left: Math.random() * 100,
-      duration: 8 + Math.random() * 10,
-      delay: Math.random() * 8,
-      xOffset: Math.random() * 60 - 30,
-    })),
-  );
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {particles.map((p, i) => (
-        <motion.span
-          key={i}
-          className="absolute rounded-full bg-white/40"
-          style={{
-            left: `${p.left}%`,
-            bottom: "-10px",
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            filter: "blur(0.5px)",
-          }}
-          animate={{
-            y: ["0vh", "-90vh"],
-            opacity: [0, 0.6, 0.6, 0],
-            x: [0, p.xOffset],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ─── Petits dots flottants pour le no-cover hero ─── */
-function FloatingDots() {
-  const [dots] = useState(() =>
-    Array.from({ length: 12 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      duration: 4 + Math.random() * 4,
-      delay: Math.random() * 4,
-    })),
-  );
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {dots.map((d, i) => (
-        <motion.span
-          key={i}
-          className="absolute size-1 rounded-full"
-          style={{
-            left: `${d.left}%`,
-            top: `${d.top}%`,
-            background:
-              "color-mix(in oklab, var(--client-primary, currentColor) 30%, transparent)",
-          }}
-          animate={{
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.4, 1],
-          }}
-          transition={{
-            duration: d.duration,
-            delay: d.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ─── Ornements coins (SVG décoratifs) ─── */
-function CornerOrnaments() {
-  return (
-    <>
-      {/* Coin haut-gauche : couverts croisés */}
-      <motion.div
-        aria-hidden="true"
-        initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
-        animate={{ opacity: 0.3, scale: 1, rotate: 0 }}
-        transition={{ duration: 1.2, ease: EASE, delay: 0.6 }}
-        className="absolute top-6 left-6"
-      >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path
-            d="M8 4v18M14 4v18M11 22v14M30 4c-2 0-4 2-4 4v12h8v-12c0-2-2-4-4-4Zm0 16v16"
-            stroke="white"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </motion.div>
-
-      {/* Coin haut-droit : étoile */}
-      <motion.div
-        aria-hidden="true"
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 0.4, scale: 1 }}
-        transition={{ duration: 1.2, ease: EASE, delay: 0.8 }}
-        className="absolute top-6 right-6"
-      >
-        <motion.svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
-          fill="none"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        >
-          <path
-            d="M16 4l2.5 8.5L27 15l-8.5 2.5L16 26l-2.5-8.5L5 15l8.5-2.5L16 4Z"
-            stroke="white"
-            strokeWidth="1.2"
-            strokeLinejoin="round"
-          />
-        </motion.svg>
-      </motion.div>
-    </>
-  );
-}
-
-/* ─── Section header avec typographie monumentale ─── */
-function SectionHeader({
-  title,
-  description,
-  index,
-  prefersReduced,
-}: {
-  title: string;
-  description: string | null;
-  index: number;
-  prefersReduced: boolean;
-}) {
-  return (
-    <motion.header
-      className="relative mb-10 text-center"
-      initial={prefersReduced ? false : "hidden"}
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-    >
-      {/* Numéro géant en background */}
-      <motion.div
-        aria-hidden="true"
-        variants={{
-          hidden: { opacity: 0, scale: 0.8 },
-          visible: { opacity: 1, scale: 1 },
-        }}
-        transition={{ duration: 1, ease: EASE }}
-        className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
-      >
-        <span
-          className="text-[8rem] leading-none font-black tracking-tighter opacity-[0.05] sm:text-[12rem]"
-          style={{ color: "var(--client-primary, currentColor)" }}
-        >
-          {String(index + 1).padStart(2, "0")}
-        </span>
-      </motion.div>
-
-      <div className="relative">
-        {/* Pre-title petit caps */}
-        <motion.p
-          variants={{
-            hidden: { opacity: 0, y: 8 },
-            visible: { opacity: 1, y: 0 },
-          }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="text-muted-foreground/70 mb-3 text-[10px] font-semibold tracking-[0.4em] uppercase"
-        >
-          Chapitre {String(index + 1).padStart(2, "0")}
-        </motion.p>
-
-        {/* Filets + titre */}
-        <div className="flex items-center justify-center gap-4">
-          <motion.span
-            aria-hidden="true"
-            className="block h-px"
-            variants={{
-              hidden: { width: 0, opacity: 0 },
-              visible: { width: 64, opacity: 1 },
-            }}
-            transition={{ duration: 0.9, ease: EASE, delay: 0.1 }}
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, color-mix(in oklab, var(--client-primary, currentColor) 70%, transparent))",
-            }}
-          />
-          <motion.h2
-            className="text-3xl leading-none font-bold tracking-tight uppercase sm:text-5xl"
-            variants={{
-              hidden: { opacity: 0, y: 24, filter: "blur(20px)" },
-              visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-            }}
-            transition={{ duration: 1, ease: EASE, delay: 0.2 }}
-            style={{
-              color: "var(--client-primary, currentColor)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {title}
-          </motion.h2>
-          <motion.span
-            aria-hidden="true"
-            className="block h-px"
-            variants={{
-              hidden: { width: 0, opacity: 0 },
-              visible: { width: 64, opacity: 1 },
-            }}
-            transition={{ duration: 0.9, ease: EASE, delay: 0.1 }}
-            style={{
-              background:
-                "linear-gradient(90deg, color-mix(in oklab, var(--client-primary, currentColor) 70%, transparent), transparent)",
-            }}
-          />
-        </div>
-
-        {description ? (
-          <motion.p
-            variants={{
-              hidden: { opacity: 0, y: 8 },
-              visible: { opacity: 1, y: 0 },
-            }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.5 }}
-            className="text-muted-foreground mx-auto mt-4 max-w-md text-sm italic sm:text-base"
-          >
-            {description}
-          </motion.p>
-        ) : null}
-      </div>
-    </motion.header>
-  );
-}
-
-/* ─── Item row avec tilt 3D + reveal mask sur photo ─── */
-function ItemRow({
+/* ─── ITEM CARD EDITORIAL ─── */
+function ItemCard({
   slug,
   token,
   locale,
@@ -829,7 +623,7 @@ function ItemRow({
   isAvailable,
   allergens,
   optionsCount,
-  delay,
+  isEven,
   prefersReduced,
 }: {
   slug: string;
@@ -843,173 +637,169 @@ function ItemRow({
   isAvailable: boolean;
   allergens: string[];
   optionsCount: number;
-  delay: number;
+  isEven: boolean;
   prefersReduced: boolean;
 }) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const rotateX = useSpring(useTransform(my, [-100, 100], [6, -6]), {
-    stiffness: 300,
-    damping: 25,
-  });
-  const rotateY = useSpring(useTransform(mx, [-100, 100], [-6, 6]), {
-    stiffness: 300,
-    damping: 25,
-  });
-
-  function handleMouseMove(e: React.MouseEvent<HTMLAnchorElement>) {
-    if (prefersReduced) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    mx.set(e.clientX - rect.left - rect.width / 2);
-    my.set(e.clientY - rect.top - rect.height / 2);
-  }
-  function handleMouseLeave() {
-    mx.set(0);
-    my.set(0);
-  }
+  const ref = useRef<HTMLAnchorElement>(null);
 
   return (
     <motion.li
-      initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.7, ease: EASE, delay }}
-      style={{ perspective: 1200 }}
+      initial={prefersReduced ? false : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, margin: "-15%" }}
+      variants={{
+        hidden: { opacity: 0, y: 50 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.9, ease: EASE },
+        },
+      }}
+      className={`flex w-full flex-col ${isEven ? "items-start" : "items-end"}`}
     >
-      <motion.div
-        style={prefersReduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      <Link
+        ref={ref}
+        href={`/r/${slug}/t/${token}/items/${itemId}`}
+        className={`group block w-full ${!isAvailable ? "pointer-events-none opacity-50" : ""}`}
+        aria-label={itemName}
       >
-        <Link
-          ref={cardRef}
-          href={`/r/${slug}/t/${token}/items/${itemId}`}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          className={`group relative flex items-stretch gap-4 overflow-hidden rounded-2xl border bg-[color-mix(in_oklab,var(--client-primary,currentColor)_2%,var(--background))] p-3 shadow-sm transition-all hover:shadow-2xl sm:p-4 ${
-            !isAvailable ? "opacity-50" : ""
+        {/* Image full-width 85% avec mask reveal */}
+        <div
+          className={`relative aspect-[4/5] w-[88%] overflow-hidden rounded-sm bg-stone-100 sm:aspect-[5/4] ${
+            isEven ? "ml-0" : "ml-auto"
           }`}
-          style={{
-            borderColor:
-              "color-mix(in oklab, var(--client-primary, currentColor) 12%, transparent)",
-          }}
         >
-          {/* Photo (gauche) avec mask reveal */}
           {imageUrl ? (
             <motion.div
-              className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-32"
-              initial={prefersReduced ? false : { clipPath: "inset(0 100% 0 0)" }}
-              whileInView={{ clipPath: "inset(0 0% 0 0)" }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 1, ease: EASE, delay: delay + 0.3 }}
+              variants={{
+                hidden: { clipPath: "inset(100% 0 0 0)" },
+                visible: {
+                  clipPath: "inset(0% 0 0 0)",
+                  transition: { duration: 1.2, ease: EASE, delay: 0.1 },
+                },
+              }}
+              className="absolute inset-0"
             >
               <motion.div
                 className="absolute inset-0"
-                whileHover={prefersReduced ? undefined : { scale: 1.12 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                variants={{
+                  hidden: { scale: 1.25, filter: "blur(12px)" },
+                  visible: {
+                    scale: 1,
+                    filter: "blur(0px)",
+                    transition: { duration: 1.5, ease: EASE },
+                  },
+                }}
               >
-                <Image
-                  src={imageUrl}
-                  alt={itemName}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 96px, 128px"
-                  unoptimized
-                />
+                <motion.div
+                  className="size-full"
+                  whileHover={prefersReduced ? undefined : { scale: 1.06 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 22 }}
+                >
+                  <Image
+                    src={imageUrl}
+                    alt={itemName}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 88vw, 600px"
+                    unoptimized
+                    loading="lazy"
+                  />
+                </motion.div>
               </motion.div>
-              {/* Shine effect au hover */}
+
+              {/* Shine au hover */}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 -translate-x-full -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                className="pointer-events-none absolute inset-0 -translate-x-full -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
               />
-              {!isAvailable ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-                  <span className="rounded-md bg-white/95 px-2 py-1 text-[10px] font-bold tracking-wider uppercase shadow-md">
-                    {locale === "en" ? "Out" : "Rupture"}
-                  </span>
-                </div>
-              ) : null}
             </motion.div>
           ) : (
+            // Placeholder élégant si pas de photo
             <motion.div
-              className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-32"
-              initial={prefersReduced ? false : { opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.7, ease: EASE, delay: delay + 0.3 }}
+              variants={{
+                hidden: { opacity: 0, scale: 0.95 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.9, ease: EASE } },
+              }}
+              className="absolute inset-0 flex items-center justify-center"
               style={{
                 background:
-                  "linear-gradient(135deg, color-mix(in oklab, var(--client-primary, currentColor) 14%, transparent), color-mix(in oklab, var(--client-accent-2, currentColor) 8%, transparent))",
+                  "linear-gradient(135deg, color-mix(in oklab, var(--client-primary, currentColor) 14%, #FAF8F2), color-mix(in oklab, var(--client-accent-2, currentColor) 6%, #F5F1E8))",
               }}
             >
-              <span className="absolute inset-0 flex items-center justify-center text-3xl opacity-60">
-                🍴
-              </span>
-              {/* Animated shimmer */}
-              {!prefersReduced ? (
-                <motion.span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0"
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
-                  }}
-                />
-              ) : null}
+              <span className="text-5xl opacity-40">🍽️</span>
             </motion.div>
           )}
 
-          {/* Texte (droite) */}
-          <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-1">
-            <div>
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-base font-semibold tracking-tight sm:text-lg">
-                  {itemName}
-                </h3>
-                <motion.span
-                  className="shrink-0 text-lg font-bold tracking-tight tabular-nums sm:text-xl"
-                  style={{
-                    color: "var(--client-accent-2, var(--client-primary, currentColor))",
-                  }}
-                  whileHover={prefersReduced ? undefined : { scale: 1.1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                >
-                  {priceFormatter.format(priceCents / 100)}
-                </motion.span>
-              </div>
-
-              {itemDesc ? (
-                <p className="text-muted-foreground mt-1 line-clamp-2 text-sm italic">
-                  {itemDesc}
-                </p>
-              ) : null}
+          {/* Magnetic Price Tag */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 16, scale: 0.9 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: { duration: 0.7, ease: EASE, delay: 0.5 },
+              },
+            }}
+            className={`absolute bottom-4 ${isEven ? "right-4" : "left-4"} z-10`}
+          >
+            <div
+              className="rounded-full bg-white/95 px-4 py-2 text-base font-bold shadow-xl backdrop-blur-md ring-1 ring-black/5 sm:text-lg"
+              style={{ color: "var(--client-accent-2, var(--client-primary, #1A1A18))" }}
+            >
+              {priceFormatter.format(priceCents / 100)}
             </div>
+          </motion.div>
 
-            <div className="flex items-end justify-between gap-2">
-              {allergens.length > 0 ? (
-                <span
-                  className="text-muted-foreground/80 text-[11px]"
-                  title={allergens
-                    .map((a) => ALLERGEN_FULL[a]?.[locale === "en" ? "en" : "fr"] ?? a)
-                    .join(", ")}
-                >
-                  <span className="opacity-60">
-                    {locale === "en" ? "Contains:" : "Contient :"}
-                  </span>{" "}
-                  <span className="font-medium">
-                    {allergens.map((a) => ALLERGEN_INITIALS[a] ?? a).join(" · ")}
+          {/* Out of stock overlay */}
+          {!isAvailable ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-[2px]">
+              <span className="rounded bg-white/95 px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase shadow-lg">
+                {locale === "en" ? "Sold Out" : "Rupture"}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Texte éditorial sous l'image */}
+        <div
+          className={`mt-6 max-w-md ${isEven ? "pr-3 text-left" : "ml-auto pl-3 text-right"}`}
+        >
+          <h3 className="text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+            {itemName}
+          </h3>
+          {itemDesc ? (
+            <p className="text-foreground/55 mt-3 text-sm leading-relaxed italic sm:text-base">
+              {itemDesc}
+            </p>
+          ) : null}
+
+          {/* Métadonnées : allergènes + options */}
+          {(allergens.length > 0 || optionsCount > 0) ? (
+            <div
+              className={`mt-4 flex flex-wrap items-center gap-x-2 gap-y-2 ${
+                isEven ? "justify-start" : "justify-end"
+              }`}
+            >
+              {allergens.slice(0, 6).map((a) => {
+                const label = ALLERGEN_LABEL[a];
+                if (!label) return null;
+                return (
+                  <span
+                    key={a}
+                    className="text-foreground/40 border border-black/10 px-2 py-1 text-[9px] tracking-[0.2em] uppercase"
+                  >
+                    {label[locale === "en" ? "en" : "fr"]}
                   </span>
-                </span>
-              ) : (
-                <span />
-              )}
+                );
+              })}
               {optionsCount > 0 ? (
                 <span
-                  className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                  className="border px-2 py-1 text-[9px] font-semibold tracking-[0.2em] uppercase"
                   style={{
-                    background:
-                      "color-mix(in oklab, var(--client-primary, currentColor) 12%, transparent)",
+                    borderColor:
+                      "color-mix(in oklab, var(--client-primary, currentColor) 30%, transparent)",
                     color: "var(--client-primary, currentColor)",
                   }}
                 >
@@ -1024,16 +814,9 @@ function ItemRow({
                 </span>
               ) : null}
             </div>
-          </div>
-        </Link>
-      </motion.div>
+          ) : null}
+        </div>
+      </Link>
     </motion.li>
   );
-}
-
-/* Helper hack pour faire passer les locale strings */
-function locale_text(s: { fr: string; en: string }): string {
-  // au runtime client, on est en FR par défaut. Le système d'i18n est gérée
-  // côté layout, ici on retourne FR — le texte est court et générique.
-  return s.fr;
 }

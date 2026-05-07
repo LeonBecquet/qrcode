@@ -22,6 +22,7 @@ export default async function PublicMenuPage({
         restaurantName={restaurant.name}
         restaurantDescription={restaurant.description}
         coverUrl={restaurant.coverUrl}
+        logoUrl={restaurant.logoUrl}
         publicMenu={publicMenu}
       />
       <CartButton slug={slug} token={token} />
